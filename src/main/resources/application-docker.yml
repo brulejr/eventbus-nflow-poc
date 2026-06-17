@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/nflow_poc
+    username: nflow
+    password: nflow
+    driver-class-name: org.postgresql.Driver
+
+poc:
+  broker:
+    mqtt:
+      enabled: true
+      embedded: false
+      host: mosquitto
+      port: 1883
+    rabbit:
+      enabled: true
+      host: rabbitmq
+      port: 5672
+      username: guest
+      password: guest
+      virtual-host: /
+
+management:
+  health:
+    rabbit:
+      enabled: false

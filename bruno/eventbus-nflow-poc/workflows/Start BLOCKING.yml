@@ -1,0 +1,29 @@
+info:
+  name: Start BLOCKING
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{eventbus_nflow_url}}/api/workflows/rest-blocking?timeout=PT10S"
+  params:
+    - name: timeout
+      value: PT10S
+      type: query
+  body:
+    type: json
+    data: |-
+      {
+        "correlationId": "rest-async-001",
+        "payload": {
+          "sku": "ABC-123",
+          "quantity": 5
+        }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,44 @@
+### Async REST workflow
+POST http://localhost:8080/api/workflows/rest-async
+Content-Type: application/json
+
+{
+  "correlationId": "rest-async-001",
+  "payload": {
+    "sku": "ABC-123",
+    "quantity": 5,
+    "destinationZip": "12309"
+  }
+}
+
+### Blocking REST workflow
+POST http://localhost:8080/api/workflows/rest-blocking?timeout=PT10S
+Content-Type: application/json
+
+{
+  "correlationId": "rest-blocking-001",
+  "payload": {
+    "sku": "ABC-456",
+    "quantity": 10,
+    "destinationZip": "12309"
+  }
+}
+
+### In-memory inbound simulation
+POST http://localhost:8080/api/workflows/inbound-test
+Content-Type: application/json
+
+{
+  "correlationId": "inbound-test-001",
+  "payload": {
+    "eventType": "QuoteRequested",
+    "sku": "ABC-789",
+    "quantity": 25
+  }
+}
+
+### Actuator health
+GET http://localhost:8080/mgmt/health
+
+### Prometheus metrics
+GET http://localhost:8080/mgmt/prometheus

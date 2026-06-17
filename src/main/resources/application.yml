@@ -1,0 +1,39 @@
+spring.application.name: eventbus-nflow-poc
+spring.profiles.active: ${PROFILE:standalone}
+
+spring:
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 4500
+  error.include-message: always
+
+management:
+  endpoints:
+    web:
+      base-path: /mgmt
+      exposure:
+        include: health,info,metrics,prometheus
+  health:
+    rabbit:
+      enabled: false
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+poc:
+  workflow:
+    simulated-processing-delay: PT1S
+  broker:
+    mqtt:
+      client-id: eventbus-nflow-poc
+      topic: poc/workflow/start
+    rabbit:
+      exchange: poc.workflow
+      queue: poc.workflow.start
+      routing-key: workflow.start

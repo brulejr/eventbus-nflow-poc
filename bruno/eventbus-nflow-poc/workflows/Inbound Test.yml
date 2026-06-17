@@ -1,0 +1,25 @@
+info:
+  name: Inbound Test
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{eventbus_nflow_url}}/api/workflows/inbound-test"
+  body:
+    type: json
+    data: |-
+      {
+        "correlationId": "rest-async-001",
+        "payload": {
+          "sku": "ABC-123",
+          "quantity": 5
+        }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

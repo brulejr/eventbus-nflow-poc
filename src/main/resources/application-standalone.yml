@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/nflow-poc;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+poc:
+  broker:
+    mqtt:
+      enabled: true
+      embedded: true
+      host: localhost
+      port: 1884
+    rabbit:
+      enabled: false
+
+management:
+  health:
+    rabbit:
+      enabled: false

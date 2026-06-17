@@ -1,0 +1,39 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Jon Brule
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package io.jrb.labs.nflowpoc.workflow.nflow
+
+import io.jrb.labs.nflowpoc.workflow.WorkflowTypes
+
+/**
+ * First-pass nFlow workflow design for the async REST exemplar.
+ *
+ * This is intentionally represented as compile-safe metadata until the concrete
+ * nFlow adapter is wired. The current executable POC path is provided by
+ * SimulatedWorkflowEngineAdapter.
+ */
+object AsyncRestWorkflow {
+    const val TYPE: String = WorkflowTypes.ASYNC_REST
+    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
+}

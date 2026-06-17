@@ -1,0 +1,4 @@
+name: LOCAL
+variables:
+  - name: eventbus_nflow_url
+    value: http://localhost:4500

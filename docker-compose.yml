@@ -1,0 +1,43 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nflow_poc
+      SPRING_DATASOURCE_USERNAME: nflow
+      SPRING_DATASOURCE_PASSWORD: nflow
+      POC_BROKER_RABBIT_HOST: rabbitmq
+      POC_BROKER_MQTT_HOST: mosquitto
+    depends_on:
+      - postgres
+      - rabbitmq
+      - mosquitto
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: nflow_poc
+      POSTGRES_USER: nflow
+      POSTGRES_PASSWORD: nflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+volumes:
+  postgres-data:

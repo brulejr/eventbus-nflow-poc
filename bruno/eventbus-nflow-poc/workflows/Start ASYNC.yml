@@ -1,0 +1,25 @@
+info:
+  name: Start ASYNC
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{eventbus_nflow_url}}/api/workflows/rest-async"
+  body:
+    type: json
+    data: |-
+      {
+        "correlationId": "rest-async-001",
+        "payload": {
+          "sku": "ABC-123",
+          "quantity": 5
+        }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
