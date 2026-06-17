@@ -22,12 +22,11 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow.nflow
+package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
-import io.jrb.labs.nflowpoc.workflow.WorkflowTypes
-
-/** Compile-safe metadata for the blocking REST exemplar workflow. */
-object BlockingRestWorkflow {
-    const val TYPE: String = WorkflowTypes.BLOCKING_REST
-    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
+object NflowVars {
+    const val TICKET_ID = "ticketId"
+    const val CORRELATION_ID = "correlationId"
+    const val SOURCE = "source"
+    const val PAYLOAD_JSON = "payloadJson"
 }

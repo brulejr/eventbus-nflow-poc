@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,17 +22,23 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow
+package io.jrb.labs.nflowpoc.features.workflow.store
 
-import org.springframework.stereotype.Component
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunResult
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunStatus
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
-@Component
 class WorkflowResultStore {
+
     private val tickets = ConcurrentHashMap<String, MutableWorkflowRecord>()
     private val waiters = ConcurrentHashMap<String, CompletableFuture<WorkflowRunResult>>()
 
@@ -90,8 +96,8 @@ class WorkflowResultStore {
 
         val future = waiters.computeIfAbsent(ticketId) { CompletableFuture() }
         return try {
-            future.get(timeout.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS)
-        } catch (ex: java.util.concurrent.TimeoutException) {
+            future.get(timeout.toMillis(), TimeUnit.MILLISECONDS)
+        } catch (ex: TimeoutException) {
             markTimedOut(ticketId, "Timed out waiting for workflow ticketId=$ticketId after $timeout")
         } finally {
             waiters.remove(ticketId)

@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow
+package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import java.time.Duration
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 
-@ConfigurationProperties(prefix = "poc.workflow")
-data class WorkflowProperties(
-    val simulatedProcessingDelay: Duration = Duration.ofSeconds(1)
-)
+/** Compile-safe metadata for the inbound message exemplar workflow. */
+object InboundMessageWorkflow {
+    const val TYPE: String = WorkflowTypes.INBOUND_MESSAGE
+    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
+}

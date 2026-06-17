@@ -24,10 +24,10 @@
 
 package io.jrb.labs.nflowpoc.ingress
 
-import io.jrb.labs.nflowpoc.metrics.WorkflowMetrics
-import io.jrb.labs.nflowpoc.workflow.WorkflowLaunchService
-import io.jrb.labs.nflowpoc.workflow.WorkflowStartCommand
-import io.jrb.labs.nflowpoc.workflow.WorkflowTicket
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
+import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.UUID

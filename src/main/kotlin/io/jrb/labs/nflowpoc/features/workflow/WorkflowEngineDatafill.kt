@@ -22,29 +22,13 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow.nflow
+package io.jrb.labs.nflowpoc.features.workflow
 
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.DeferredImportSelector
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Profile
-import org.springframework.core.type.AnnotationMetadata
+import io.jrb.labs.nflowpoc.features.FeatureDescriptors.CONFIG_PREFIX_WORKFLOW_ENGINE
+import org.springframework.boot.context.properties.ConfigurationProperties
+import java.time.Duration
 
-/**
- * Enables nFlow when the `nflow` Spring profile is active.
- *
- * The configuration class is imported by class name through an ImportSelector instead of
- * directly importing the nFlow type. This keeps the project compile-safe if the nFlow Spring
- * configuration class moves between versions, while still making this file an actual nFlow
- * integration point rather than an empty placeholder.
- */
-@Configuration
-@Profile("nflow")
-@Import(NflowConfigurationImportSelector::class)
-class NflowConfig
-
-class NflowConfigurationImportSelector : DeferredImportSelector {
-    override fun selectImports(importingClassMetadata: AnnotationMetadata): Array<String> = arrayOf(
-        "io.nflow.rest.config.RestConfiguration"
-    )
-}
+@ConfigurationProperties(prefix = CONFIG_PREFIX_WORKFLOW_ENGINE)
+data class WorkflowEngineDatafill(
+    val simulatedProcessingDelay: Duration = Duration.ofSeconds(1)
+)

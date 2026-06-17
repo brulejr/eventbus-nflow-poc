@@ -30,7 +30,7 @@ import com.hivemq.client.mqtt.datatypes.MqttQos
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
 import io.jrb.labs.nflowpoc.ingress.InboundMessage
 import io.jrb.labs.nflowpoc.ingress.InboundWorkflowDispatcher
-import io.jrb.labs.nflowpoc.workflow.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent

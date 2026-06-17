@@ -22,19 +22,12 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress
+package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 
-data class InboundMessage(
-    val source: WorkflowSource,
-    val correlationId: String?,
-    val workflowType: String,
-    val payload: Map<String, Any?>,
-    val rawBody: String
-)
-
-interface MessageIngressAdapter {
-    val name: String
-    val source: WorkflowSource
+/** Compile-safe metadata for the blocking REST exemplar workflow. */
+object BlockingRestWorkflow {
+    const val TYPE: String = WorkflowTypes.BLOCKING_REST
+    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
 }

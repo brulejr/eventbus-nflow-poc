@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow.nflow
+package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.jrb.labs.nflowpoc.workflow.WorkflowEngineAdapter
-import io.jrb.labs.nflowpoc.workflow.WorkflowEngineHandle
-import io.jrb.labs.nflowpoc.workflow.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowEngineAdapter
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowEngineHandle
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Profile

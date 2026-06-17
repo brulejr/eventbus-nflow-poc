@@ -22,19 +22,18 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress
+package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 
-data class InboundMessage(
-    val source: WorkflowSource,
-    val correlationId: String?,
-    val workflowType: String,
-    val payload: Map<String, Any?>,
-    val rawBody: String
-)
-
-interface MessageIngressAdapter {
-    val name: String
-    val source: WorkflowSource
+/**
+ * First-pass nFlow workflow design for the async REST exemplar.
+ *
+ * This is intentionally represented as compile-safe metadata until the concrete
+ * nFlow adapter is wired. The current executable POC path is provided by
+ * SimulatedWorkflowEngineAdapter.
+ */
+object AsyncRestWorkflow {
+    const val TYPE: String = WorkflowTypes.ASYNC_REST
+    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
 }

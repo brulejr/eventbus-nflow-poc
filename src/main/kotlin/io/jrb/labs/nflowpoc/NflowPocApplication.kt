@@ -30,7 +30,13 @@ import org.springframework.boot.runApplication
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-class NflowPocApplication
+class NflowPocApplication {
+
+    companion object {
+        const val APP_NAME = "eventbus-nflow-poc"
+    }
+
+}
 
 fun main(args: Array<String>) {
     runApplication<NflowPocApplication>(*args)

@@ -24,11 +24,11 @@
 
 package io.jrb.labs.nflowpoc.api
 
-import io.jrb.labs.nflowpoc.workflow.WorkflowLaunchService
-import io.jrb.labs.nflowpoc.workflow.WorkflowSource
-import io.jrb.labs.nflowpoc.workflow.WorkflowStartCommand
-import io.jrb.labs.nflowpoc.workflow.WorkflowRunResult
-import io.jrb.labs.nflowpoc.workflow.WorkflowTypes
+import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunResult
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,24 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow
+package io.jrb.labs.nflowpoc.features.workflow.trace
 
-/**
- * Canonical workflow type names used by the REST controllers, message ingress adapters,
- * and nFlow workflow definitions.
- */
-object WorkflowTypes {
-    const val ASYNC_REST = "async-rest-workflow"
-    const val BLOCKING_REST = "blocking-rest-workflow"
-    const val INBOUND_MESSAGE = "inbound-message-workflow"
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.MDC
+import org.springframework.web.filter.OncePerRequestFilter
+import java.util.UUID
+
+class CorrelationFilter : OncePerRequestFilter() {
+    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+        val correlationId = request.getHeader("X-Correlation-Id") ?: UUID.randomUUID().toString()
+        MDC.put("correlationId", correlationId)
+        response.setHeader("X-Correlation-Id", correlationId)
+        try {
+            filterChain.doFilter(request, response)
+        } finally {
+            MDC.remove("correlationId")
+        }
+    }
 }

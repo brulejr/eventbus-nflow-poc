@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow
+package io.jrb.labs.nflowpoc.features.workflow.model
 
 import java.time.Instant
 import java.util.UUID

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,17 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow
+package io.jrb.labs.nflowpoc.features.workflow.service
 
-import io.jrb.labs.nflowpoc.metrics.WorkflowMetrics
+import io.jrb.labs.nflowpoc.features.workflow.WorkflowEngineDatafill
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowEngineHandle
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
@@ -37,8 +42,9 @@ import java.util.concurrent.CompletableFuture
 class SimulatedWorkflowEngineAdapter(
     private val resultStore: WorkflowResultStore,
     private val metrics: WorkflowMetrics,
-    private val properties: WorkflowProperties
+    private val datafill: WorkflowEngineDatafill
 ) : WorkflowEngineAdapter {
+
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun start(command: WorkflowStartCommand, ticketId: String): WorkflowEngineHandle {
@@ -48,7 +54,7 @@ class SimulatedWorkflowEngineAdapter(
             val started = Instant.now()
             try {
                 resultStore.markRunning(ticketId)
-                Thread.sleep(properties.simulatedProcessingDelay.toMillis())
+                Thread.sleep(datafill.simulatedProcessingDelay.toMillis())
 
                 val result = mapOf(
                     "message" to "Workflow completed by simulated engine",
@@ -59,7 +65,7 @@ class SimulatedWorkflowEngineAdapter(
                 )
 
                 resultStore.markCompleted(ticketId, result)
-                metrics.workflowCompleted(command.workflowType, command.source, java.time.Duration.between(started, Instant.now()))
+                metrics.workflowCompleted(command.workflowType, command.source, Duration.between(started, Instant.now()))
             } catch (ex: Exception) {
                 log.error("Simulated workflow failed ticketId={}", ticketId, ex)
                 resultStore.markFailed(ticketId, ex.message ?: ex.javaClass.name)
@@ -69,4 +75,5 @@ class SimulatedWorkflowEngineAdapter(
 
         return WorkflowEngineHandle(engineInstanceId)
     }
+
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,12 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.metrics
+package io.jrb.labs.nflowpoc.features.workflow.metrics
 
-import io.jrb.labs.nflowpoc.workflow.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import io.micrometer.core.instrument.MeterRegistry
-import org.springframework.stereotype.Component
 import java.time.Duration
 
-@Component
 class WorkflowMetrics(
     private val meterRegistry: MeterRegistry
 ) {

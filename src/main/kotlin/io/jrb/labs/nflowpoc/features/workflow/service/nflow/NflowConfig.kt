@@ -22,12 +22,29 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow.nflow
+package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
-import io.jrb.labs.nflowpoc.workflow.WorkflowTypes
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DeferredImportSelector
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
+import org.springframework.core.type.AnnotationMetadata
 
-/** Compile-safe metadata for the inbound message exemplar workflow. */
-object InboundMessageWorkflow {
-    const val TYPE: String = WorkflowTypes.INBOUND_MESSAGE
-    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
+/**
+ * Enables nFlow when the `nflow` Spring profile is active.
+ *
+ * The configuration class is imported by class name through an ImportSelector instead of
+ * directly importing the nFlow type. This keeps the project compile-safe if the nFlow Spring
+ * configuration class moves between versions, while still making this file an actual nFlow
+ * integration point rather than an empty placeholder.
+ */
+@Configuration
+@Profile("nflow")
+@Import(NflowConfigurationImportSelector::class)
+class NflowConfig
+
+class NflowConfigurationImportSelector : DeferredImportSelector {
+    override fun selectImports(importingClassMetadata: AnnotationMetadata): Array<String> = arrayOf(
+        "io.nflow.rest.config.RestConfiguration"
+    )
 }

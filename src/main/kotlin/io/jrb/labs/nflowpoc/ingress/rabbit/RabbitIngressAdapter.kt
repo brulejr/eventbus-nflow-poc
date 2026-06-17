@@ -33,7 +33,7 @@ import com.rabbitmq.client.DeliverCallback
 import io.jrb.labs.nflowpoc.ingress.InboundMessageParser
 import io.jrb.labs.nflowpoc.ingress.InboundWorkflowDispatcher
 import io.jrb.labs.nflowpoc.ingress.MessageIngressAdapter
-import io.jrb.labs.nflowpoc.workflow.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory

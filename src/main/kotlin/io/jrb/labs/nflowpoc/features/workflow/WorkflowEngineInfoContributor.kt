@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,19 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow.nflow
+package io.jrb.labs.nflowpoc.features.workflow
 
-object NflowVars {
-    const val TICKET_ID = "ticketId"
-    const val CORRELATION_ID = "correlationId"
-    const val SOURCE = "source"
-    const val PAYLOAD_JSON = "payloadJson"
+import io.jrb.labs.commons.actuator.FeatureInfoContributor
+import io.jrb.labs.nflowpoc.features.FeatureDescriptors.WORKFLOW_ENGINE
+
+class WorkflowEngineInfoContributor(
+    private val datafill: WorkflowEngineDatafill
+) : FeatureInfoContributor {
+
+    override val key: String = WORKFLOW_ENGINE.featureId
+
+    override fun info(): Map<String, Any?> = mapOf(
+        "simulatedProcessingDelay" to datafill.simulatedProcessingDelay
+    )
+
 }

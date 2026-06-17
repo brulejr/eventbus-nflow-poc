@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,18 +22,14 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow.nflow
-
-import io.jrb.labs.nflowpoc.workflow.WorkflowTypes
+package io.jrb.labs.nflowpoc.features.workflow.model
 
 /**
- * First-pass nFlow workflow design for the async REST exemplar.
- *
- * This is intentionally represented as compile-safe metadata until the concrete
- * nFlow adapter is wired. The current executable POC path is provided by
- * SimulatedWorkflowEngineAdapter.
+ * Canonical workflow type names used by the REST controllers, message ingress adapters,
+ * and nFlow workflow definitions.
  */
-object AsyncRestWorkflow {
-    const val TYPE: String = WorkflowTypes.ASYNC_REST
-    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
+object WorkflowTypes {
+    const val ASYNC_REST = "async-rest-workflow"
+    const val BLOCKING_REST = "blocking-rest-workflow"
+    const val INBOUND_MESSAGE = "inbound-message-workflow"
 }

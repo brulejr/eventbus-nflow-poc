@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,11 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress
+package io.jrb.labs.nflowpoc.features.workflow.service
 
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowEngineHandle
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
 
-data class InboundMessage(
-    val source: WorkflowSource,
-    val correlationId: String?,
-    val workflowType: String,
-    val payload: Map<String, Any?>,
-    val rawBody: String
-)
-
-interface MessageIngressAdapter {
-    val name: String
-    val source: WorkflowSource
+interface WorkflowEngineAdapter {
+    fun start(command: WorkflowStartCommand, ticketId: String): WorkflowEngineHandle
 }

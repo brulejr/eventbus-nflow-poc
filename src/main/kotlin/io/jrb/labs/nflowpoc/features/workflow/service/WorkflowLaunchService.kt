@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,22 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow
+package io.jrb.labs.nflowpoc.features.workflow.service
 
-import io.jrb.labs.nflowpoc.metrics.WorkflowMetrics
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunResult
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
+import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 import java.time.Duration
 
-@Service
 class WorkflowLaunchService(
     private val workflowEngineAdapter: WorkflowEngineAdapter,
     private val resultStore: WorkflowResultStore,
     private val metrics: WorkflowMetrics
 ) {
+
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun startAsync(command: WorkflowStartCommand): WorkflowTicket {
@@ -54,4 +57,5 @@ class WorkflowLaunchService(
     fun getResult(ticketId: String): WorkflowRunResult = resultStore.getResult(ticketId)
 
     fun listResults(): List<WorkflowRunResult> = resultStore.listResults()
+
 }

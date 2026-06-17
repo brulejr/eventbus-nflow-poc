@@ -26,7 +26,7 @@ package io.jrb.labs.nflowpoc.ingress
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.jrb.labs.nflowpoc.workflow.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import org.springframework.stereotype.Component
 
 @Component

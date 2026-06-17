@@ -22,8 +22,30 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.workflow
+package io.jrb.labs.nflowpoc.features
 
-interface WorkflowEngineAdapter {
-    fun start(command: WorkflowStartCommand, ticketId: String): WorkflowEngineHandle
+import io.jrb.labs.commons.feature.FeatureDescriptor
+import io.jrb.labs.nflowpoc.NflowPocApplication.Companion.APP_NAME
+
+object FeatureDescriptors {
+
+    const val CONFIG_PREFIX_WORKFLOW_ENGINE = "workflow.engine"
+    const val CONFIG_PREFIX_WORKFLOW_INGRESS = "workflow.ingress"
+
+    val WORKFLOW_ENGINE = FeatureDescriptor(
+        application = APP_NAME,
+        featureId = "workflow-engine",
+        displayName = "Workflow Engine",
+        description = "Provides the core workflow engine",
+        configPrefix = CONFIG_PREFIX_WORKFLOW_ENGINE
+    )
+
+    val WORKFLOW_INGRESS = FeatureDescriptor(
+        application = APP_NAME,
+        featureId = "workflow-ingress",
+        displayName = "Workflow Engine Ingress",
+        description = "Provides REST and messaging access to the workflow engine",
+        configPrefix = CONFIG_PREFIX_WORKFLOW_INGRESS
+    )
+
 }

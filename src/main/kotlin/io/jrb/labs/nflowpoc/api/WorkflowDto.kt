@@ -24,8 +24,8 @@
 
 package io.jrb.labs.nflowpoc.api
 
-import io.jrb.labs.nflowpoc.workflow.WorkflowRunResult
-import io.jrb.labs.nflowpoc.workflow.WorkflowTicket
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunResult
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
 
 data class WorkflowRequest(
     val correlationId: String? = null,
