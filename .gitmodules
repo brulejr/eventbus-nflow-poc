@@ -1,0 +1,3 @@
+[submodule "vendor/ksb-commons"]
+	path = vendor/ksb-commons
+	url = git@github.com:brulejr/ksb-commons.git
