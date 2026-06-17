@@ -1,5 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+val ksbCommonsVersion: String by project
+
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21"
@@ -36,6 +38,9 @@ configurations.configureEach {
 }
 
 dependencies {
+    implementation("io.jrb.labs:ksb-commons-core:$ksbCommonsVersion")
+    implementation("io.jrb.labs:ksb-commons-ms-core:$ksbCommonsVersion")
+
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
