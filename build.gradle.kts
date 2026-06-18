@@ -47,6 +47,12 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.core:jackson-annotations") {
+        version {
+            strictly("2.21")
+        }
+        because("nFlow 11 uses Jackson 3 databind, which expects annotations introduced after Spring Boot 3.5's Jackson 2.19 BOM")
+    }
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")

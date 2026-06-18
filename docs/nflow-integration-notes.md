@@ -54,9 +54,9 @@ for REST clients and broker-driven messages, while the nFlow instance ID remains
 
 Canonical workflow type names are defined in `WorkflowTypes`:
 
-- `async-rest-workflow`
-- `blocking-rest-workflow`
-- `inbound-message-workflow`
+- `async-rest-workflow`: simple starter workflow.
+- `blocking-rest-workflow`: complex multi-step starter workflow.
+- `inbound-message-workflow`: rtl433-data-pipeline simulator.
 
 REST defaults:
 
@@ -70,41 +70,18 @@ Broker defaults:
   `inbound-message-workflow`.
 - MQTT messages are mapped through `MqttWorkflowMessage`; include `workflowType` explicitly.
 
-## First nFlow definition sketch
+## Starter nFlow definitions
 
-The nFlow site shows workflow definitions extending `WorkflowDefinition` and using states, permits,
-`StateExecution`, `moveToState`, and `stopInState`. A first strongly typed definition can mirror this
-shape:
+The `nflow` profile now contributes three Spring `WorkflowDefinition` beans:
 
-```kotlin
-package io.jrb.labs.nflowpoc.features.workflow.service.nflow.definitions
+- `AsyncRestWorkflow`: simple `begin -> done` flow that proves launch and completion.
+- `BlockingRestWorkflow`: multi-step flow with validation, inventory reservation, payment authorization,
+  fulfillment scheduling, and notification states.
+- `InboundMessageWorkflow`: rtl433-style pipeline with ingest, decode, normalize, classify, enrich, and
+  route states.
 
-import io.nflow.engine.workflow.curated.StateExecution
-import io.nflow.engine.workflow.definition.NextAction
-import io.nflow.engine.workflow.definition.State
-import io.nflow.engine.workflow.definition.WorkflowDefinition
-import io.nflow.engine.workflow.definition.WorkflowStateType
-
-class InboundMessageWorkflowDefinition : WorkflowDefinition("inbound-message-workflow", BEGIN, ERROR) {
-    companion object {
-        val BEGIN = State("begin", WorkflowStateType.start)
-        val PROCESS = State("process")
-        val DONE = State("done", WorkflowStateType.end)
-        val ERROR = State("error", WorkflowStateType.manual)
-    }
-
-    init {
-        permit(BEGIN, PROCESS)
-        permit(PROCESS, DONE)
-    }
-
-    fun begin(execution: StateExecution): NextAction =
-        moveToState(PROCESS, "begin -> process")
-
-    fun process(execution: StateExecution): NextAction =
-        stopInState(DONE, "process -> done")
-}
-```
+All three definitions share `NflowWorkflowSupport`, which parses the payload state variable and updates
+`WorkflowResultStore` when the workflow reaches a terminal outcome.
 
 ## Completion contract
 
@@ -120,12 +97,33 @@ Keeping completion in the workflow layer preserves both REST modes:
 - async REST returns a ticket immediately and polls later
 - blocking REST starts the same ticket and waits for a terminal state
 
-## Validation checklist
+## Validation status
 
-1. Start with `./gradlew bootRun --args='--spring.profiles.active=standalone,nflow'`.
-2. Confirm `NflowConfig` creates the expected nFlow beans.
-3. Start each canonical workflow type through REST or broker ingress.
-4. Confirm the ticket ID is stored as the nFlow external ID.
-5. Confirm nFlow state variables contain `ticketId`, `correlationId`, `source`, and `payloadJson`.
-6. Add a terminal state or listener that updates `WorkflowResultStore`.
-7. Replace reflection in `NflowWorkflowEngineAdapter` with typed nFlow API calls.
+Validated with:
+
+```bash
+./gradlew --console=plain bootRun --args='--spring.profiles.active=standalone,nflow,nflow.db.h2'
+```
+
+- [x] Application starts with the `standalone,nflow,nflow.db.h2` profiles.
+- [x] `NflowConfig` loads and nFlow initializes its H2 schema.
+- [x] `POST /api/workflows/rest-async` starts `async-rest-workflow` and completes successfully.
+- [x] `POST /api/workflows/rest-blocking` starts `blocking-rest-workflow` and completes successfully.
+- [x] `POST /api/workflows/inbound-test`, MQTT, or RabbitMQ starts `inbound-message-workflow` and completes successfully.
+- [x] Terminal workflow states update `WorkflowResultStore`.
+- [x] The ticket ID is stored as the nFlow workflow `external_id`.
+- [x] nFlow state variables contain `ticketId`, `correlationId`, `source`, and `payloadJson`.
+
+The nFlow H2 state-variable checks can be verified with:
+
+```sql
+select wf.id, wf.type, wf.external_id, ws.action_id, ws.state_key, ws.state_value
+from nflow_workflow wf
+join nflow_workflow_state ws on ws.workflow_id = wf.id
+where wf.external_id = '<ticket-id>'
+order by ws.action_id, ws.state_key;
+```
+
+Remaining validation:
+
+- [ ] Replace reflection in `NflowWorkflowEngineAdapter` with typed nFlow API calls.

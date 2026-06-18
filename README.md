@@ -51,9 +51,9 @@ reflection while the exact nFlow 11 Spring Boot API is validated.
 
 Canonical workflow types are defined in `WorkflowTypes`:
 
-- `async-rest-workflow`
-- `blocking-rest-workflow`
-- `inbound-message-workflow`
+- `async-rest-workflow`: simple starter workflow for async REST.
+- `blocking-rest-workflow`: complex multi-step workflow for blocking REST.
+- `inbound-message-workflow`: rtl433-data-pipeline simulator for REST inbound tests, MQTT, and RabbitMQ.
 
 ## Message format
 
@@ -64,8 +64,12 @@ Inbound broker messages are JSON objects:
   "workflowType": "inbound-message-workflow",
   "correlationId": "message-001",
   "payload": {
-    "sku": "ABC-123",
-    "quantity": 5
+    "model": "Acurite-Tower",
+    "id": 12345,
+    "channel": "A",
+    "temperature_C": 21.7,
+    "humidity": 44,
+    "battery_ok": 1
   }
 }
 ```
@@ -92,7 +96,7 @@ The standalone profile starts:
 To try the nFlow-backed adapter path:
 
 ```bash
-./gradlew bootRun --args='--spring.profiles.active=standalone,nflow'
+./gradlew bootRun --args='--spring.profiles.active=standalone,nflow,nflow.db.h2'
 ```
 
 ## Run with Docker
@@ -144,7 +148,7 @@ curl -s -X POST 'http://localhost:4500/api/workflows/rest-blocking?timeout=PT10S
 ```bash
 curl -s -X POST http://localhost:4500/api/workflows/inbound-test \
   -H 'content-type: application/json' \
-  -d '{"correlationId":"inbound-test-001","payload":{"eventType":"QuoteRequested","sku":"ABC-789"}}' | jq
+  -d '{"correlationId":"inbound-test-001","payload":{"model":"Acurite-Tower","id":12345,"channel":"A","temperature_C":21.7,"humidity":44,"battery_ok":1}}' | jq
 ```
 
 ## MQTT example
@@ -155,7 +159,7 @@ Standalone mode starts embedded Moquette on port `1884`:
 mosquitto_pub -h localhost -p 1884 -t poc/workflow/start -m '{
   "workflowType":"inbound-message-workflow",
   "correlationId":"mqtt-demo-001",
-  "payload":{"sku":"ABC-123","quantity":5,"destinationZip":"12309"}
+  "payload":{"model":"Acurite-Tower","id":12345,"channel":"A","temperature_C":21.7,"humidity":44,"battery_ok":1}
 }'
 ```
 
@@ -175,7 +179,7 @@ curl -u guest:guest -H "content-type:application/json" \
   -d '{
     "properties":{},
     "routing_key":"workflow.start",
-    "payload":"{\"workflowType\":\"inbound-message-workflow\",\"correlationId\":\"rabbit-demo-001\",\"payload\":{\"sku\":\"ABC-123\",\"quantity\":5}}",
+    "payload":"{\"workflowType\":\"inbound-message-workflow\",\"correlationId\":\"rabbit-demo-001\",\"payload\":{\"model\":\"Acurite-Tower\",\"id\":12345,\"channel\":\"A\",\"temperature_C\":21.7,\"humidity\":44,\"battery_ok\":1}}",
     "payload_encoding":"string"
   }'
 ```

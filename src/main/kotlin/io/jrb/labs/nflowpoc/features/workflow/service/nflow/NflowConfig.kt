@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,9 @@ class NflowConfig
 
 class NflowConfigurationImportSelector : DeferredImportSelector {
     override fun selectImports(importingClassMetadata: AnnotationMetadata): Array<String> = arrayOf(
+        "io.nflow.engine.config.EngineConfiguration",
+        "io.nflow.engine.config.db.H2DatabaseConfiguration",
+        "io.nflow.engine.config.db.PgDatabaseConfiguration",
         "io.nflow.rest.config.RestConfiguration"
     )
 }

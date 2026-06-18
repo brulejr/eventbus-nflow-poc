@@ -31,9 +31,12 @@ Content-Type: application/json
 {
   "correlationId": "inbound-test-001",
   "payload": {
-    "eventType": "QuoteRequested",
-    "sku": "ABC-789",
-    "quantity": 25
+    "model": "Acurite-Tower",
+    "id": 12345,
+    "channel": "A",
+    "temperature_C": 21.7,
+    "humidity": 44,
+    "battery_ok": 1
   }
 }
 

@@ -16,9 +16,11 @@ mosquitto_pub \
     "workflowType": "inbound-message-workflow",
     "correlationId": "mqtt-demo-001",
     "payload": {
-      "eventType": "QuoteRequested",
-      "sku": "ABC-123",
-      "quantity": 5,
-      "destinationZip": "12309"
+      "model": "Acurite-Tower",
+      "id": 12345,
+      "channel": "A",
+      "temperature_C": 21.7,
+      "humidity": 44,
+      "battery_ok": 1
     }
   }'

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,16 +24,56 @@
 
 package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
+import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
+import io.nflow.engine.workflow.curated.State
+import io.nflow.engine.workflow.definition.NextAction
+import io.nflow.engine.workflow.definition.StateExecution
+import io.nflow.engine.workflow.definition.WorkflowState
+import io.nflow.engine.workflow.definition.WorkflowStateType
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Component
 
-/**
- * First-pass nFlow workflow design for the async REST exemplar.
- *
- * This is intentionally represented as compile-safe metadata until the concrete
- * nFlow adapter is wired. The current executable POC path is provided by
- * SimulatedWorkflowEngineAdapter.
- */
-object AsyncRestWorkflow {
-    const val TYPE: String = WorkflowTypes.ASYNC_REST
-    val states: List<String> = listOf("begin", "validate", "process", "done", "error")
+@Component
+@Profile("nflow")
+class AsyncRestWorkflow(
+    objectMapper: ObjectMapper,
+    resultStore: WorkflowResultStore
+) : NflowWorkflowSupport(WorkflowTypes.ASYNC_REST, BEGIN, ERROR, objectMapper, resultStore) {
+
+    init {
+        name = "Simple starter workflow"
+        description = "Minimal nFlow workflow for proving async REST launch, ticketing, and completion."
+        permit(BEGIN, DONE, ERROR)
+    }
+
+    fun begin(execution: StateExecution): NextAction {
+        markRunning(execution)
+        val payload = payload(execution)
+        complete(
+            execution,
+            mapOf(
+                "example" to "simple",
+                "workflowType" to WorkflowTypes.ASYNC_REST,
+                "correlationId" to correlationId(execution),
+                "source" to source(execution).name,
+                "payloadKeys" to payload.keys.sorted()
+            )
+        )
+        return NextAction.moveToState(DONE, "Simple workflow completed")
+    }
+
+    companion object {
+        const val TYPE: String = WorkflowTypes.ASYNC_REST
+
+        @JvmField
+        val BEGIN: WorkflowState = State("begin", WorkflowStateType.start, "Accept the request")
+
+        @JvmField
+        val DONE: WorkflowState = State("done", WorkflowStateType.end, "Ticket completed")
+
+        @JvmField
+        val ERROR: WorkflowState = State("error", WorkflowStateType.manual, "Manual recovery required")
+    }
 }
