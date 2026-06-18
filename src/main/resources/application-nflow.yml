@@ -1,0 +1,8 @@
+nflow.db.h2:
+  url: jdbc:h2:mem:nflow;DB_CLOSE_DELAY=-1
+  tcp.port: ""
+  console.port: ""
+
+logging:
+  level:
+    h2database: WARN

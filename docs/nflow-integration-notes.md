@@ -123,12 +123,61 @@ where wf.external_id = '<ticket-id>'
 order by ws.action_id, ws.state_key;
 ```
 
+## Local H2 inspection
+
+The `nflow` profile keeps the default local nFlow database in memory and suppresses the nFlow H2 TCP
+and console listeners. That keeps normal local startup quiet and avoids binding the default nFlow H2
+ports unless a debugging session needs them.
+
+To inspect the nFlow tables from IntelliJ, opt in to the H2 TCP listener for that run:
+
+```bash
+./gradlew --console=plain bootRun --args='--spring.profiles.active=standalone,nflow,nflow.db.h2 --nflow.db.h2.tcp.port=9092'
+```
+
+Then add an H2 data source in IntelliJ with:
+
+- JDBC URL: `jdbc:h2:tcp://localhost:9092/mem:nflow`
+- User: `sa`
+- Password: empty
+
+The application ticket database is separate from the nFlow database. The default local ticket database
+is the file-backed H2 data source under `./data/nflow-poc`; if IntelliJ is connected to that file while
+the app starts, H2 can report a file-lock error. For isolated smoke tests, override the app data source
+with an in-memory URL.
+
+## Local smoke test
+
+The repeatable local smoke test assumes the app is already running with the nFlow profile:
+
+```bash
+./gradlew --console=plain bootRun --args='--spring.profiles.active=standalone,nflow,nflow.db.h2'
+```
+
+In another shell, run:
+
+```bash
+BASE_URL=http://localhost:4500 scripts/nflow-smoke-local.sh
+```
+
+The script requires `curl` and `jq`. It validates the management health endpoint, starts the async REST,
+blocking REST, and inbound-message starter workflows, and confirms each ticket reaches `COMPLETED`.
+
+## Result store decision
+
+`WorkflowResultStore` should remain in-memory for the local POC. nFlow is now the durable workflow
+runtime and owns workflow history plus state variables. The application result store is still only the
+public ticket/result cache used by REST polling and blocking waits.
+
+A persisted `WorkflowResultStore` is a better fit for the Docker/PostgreSQL promotion, multi-instance
+runtime tests, or any scenario where API ticket results must survive application restarts.
+
 ## Near-Term Follow-Up
 
-- [ ] Document the IntelliJ H2 database connection workflow, including optional nFlow H2 TCP settings.
-- [ ] Add a repeatable local smoke-test script for the three starter workflows.
-- [ ] Decide whether `WorkflowResultStore` should remain in-memory for the POC or gain a persisted local implementation.
-- [ ] Reduce local nFlow/H2 log noise once the debugging workflow is comfortable.
+- [x] Document the IntelliJ H2 database connection workflow, including optional nFlow H2 TCP settings.
+- [x] Add a repeatable local smoke-test script for the three starter workflows.
+- [x] Decide whether `WorkflowResultStore` should remain in-memory for the POC or gain a persisted local implementation.
+- [x] Reduce local nFlow/H2 log noise once the debugging workflow is comfortable.
 
 ## Backlog
 
