@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,30 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress.rabbit
+package io.jrb.labs.nflowpoc.features.workflow.messaging
 
-import org.springframework.boot.context.properties.ConfigurationProperties
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import org.springframework.stereotype.Component
 
-@ConfigurationProperties(prefix = "poc.broker.rabbit")
-data class RabbitProperties(
-    val enabled: Boolean = false,
-    val host: String = "localhost",
-    val port: Int = 5672,
-    val username: String = "guest",
-    val password: String = "guest",
-    val virtualHost: String = "/",
-    val exchange: String = "poc.workflow",
-    val queue: String = "poc.workflow.start",
-    val routingKey: String = "workflow.start"
-)
+@Component
+class InboundMessageParser(
+    private val objectMapper: ObjectMapper
+) {
+    fun parse(source: WorkflowSource, rawBody: String): InboundMessage {
+        val root = objectMapper.readValue(rawBody, object : TypeReference<Map<String, Any?>>() {})
+        val workflowType = root["workflowType"] as? String ?: "inbound-message-workflow"
+        val correlationId = root["correlationId"] as? String
+        @Suppress("UNCHECKED_CAST")
+        val payload = root["payload"] as? Map<String, Any?> ?: emptyMap()
+
+        return InboundMessage(
+            source = source,
+            correlationId = correlationId,
+            workflowType = workflowType,
+            payload = payload,
+            rawBody = rawBody
+        )
+    }
+}

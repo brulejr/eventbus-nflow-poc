@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,43 +22,32 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress.mqtt
+package io.jrb.labs.nflowpoc.features.ingress.mqtt
 
 import io.moquette.broker.Server
 import io.moquette.broker.config.MemoryConfig
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Properties
 
-@Configuration
 @Profile("standalone")
-@EnableConfigurationProperties(MqttProperties::class)
 class EmbeddedMoquetteConfig(
-    private val mqttProperties: MqttProperties
+    private val datafill: IngressMqttDatafill
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Bean(destroyMethod = "stopServer")
-    @ConditionalOnProperty(
-        prefix = "poc.broker.mqtt",
-        name = ["embedded"],
-        havingValue = "true",
-        matchIfMissing = false
-    )
     fun embeddedMoquetteServer(): Server {
         val dataPath = Path.of("data", "moquette")
         Files.createDirectories(dataPath)
 
         val properties = Properties().apply {
-            setProperty("host", mqttProperties.host)
-            setProperty("port", mqttProperties.port.toString())
+            setProperty("host", datafill.host)
+            setProperty("port", datafill.port.toString())
 
             setProperty("allow_anonymous", "true")
             setProperty("persistence_enabled", "false")
@@ -83,8 +72,8 @@ class EmbeddedMoquetteConfig(
 
         log.info(
             "Starting embedded Moquette broker on {}:{} dataPath={}",
-            mqttProperties.host,
-            mqttProperties.port,
+            datafill.host,
+            datafill.port,
             dataPath
         )
 
@@ -92,4 +81,5 @@ class EmbeddedMoquetteConfig(
             server.startServer(MemoryConfig(properties))
         }
     }
+
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,13 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress.mqtt
+package io.jrb.labs.nflowpoc.features.ingress.mqtt
 
+import io.jrb.labs.nflowpoc.features.FeatureDescriptors.CONFIG_PREFIX_WORKFLOW_INGRESS_MQTT
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties(prefix = "poc.broker.mqtt")
-data class MqttProperties(
+@ConfigurationProperties(prefix = CONFIG_PREFIX_WORKFLOW_INGRESS_MQTT)
+data class IngressMqttDatafill(
     val enabled: Boolean = true,
     val embedded: Boolean = false,
     val host: String = "localhost",

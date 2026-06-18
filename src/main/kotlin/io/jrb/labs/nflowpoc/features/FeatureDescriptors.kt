@@ -30,7 +30,8 @@ import io.jrb.labs.nflowpoc.NflowPocApplication.Companion.APP_NAME
 object FeatureDescriptors {
 
     const val CONFIG_PREFIX_WORKFLOW_ENGINE = "workflow.engine"
-    const val CONFIG_PREFIX_WORKFLOW_INGRESS = "workflow.ingress"
+    const val CONFIG_PREFIX_WORKFLOW_INGRESS_MQTT = "workflow.ingress.mqtt"
+    const val CONFIG_PREFIX_WORKFLOW_INGRESS_RABBIT = "workflow.ingress.rabbit"
 
     val WORKFLOW_ENGINE = FeatureDescriptor(
         application = APP_NAME,
@@ -40,12 +41,19 @@ object FeatureDescriptors {
         configPrefix = CONFIG_PREFIX_WORKFLOW_ENGINE
     )
 
-    val WORKFLOW_INGRESS = FeatureDescriptor(
+    val WORKFLOW_INGRESS_MQTT = FeatureDescriptor(
         application = APP_NAME,
-        featureId = "workflow-ingress",
-        displayName = "Workflow Engine Ingress",
-        description = "Provides REST and messaging access to the workflow engine",
-        configPrefix = CONFIG_PREFIX_WORKFLOW_INGRESS
+        featureId = "workflow-ingress-mqtt",
+        displayName = "Workflow Engine MQTT Ingress",
+        description = "Provides MQTT access to the workflow engine",
+        configPrefix = CONFIG_PREFIX_WORKFLOW_INGRESS_MQTT
     )
 
+    val WORKFLOW_INGRESS_RABBIT = FeatureDescriptor(
+        application = APP_NAME,
+        featureId = "workflow-ingress-rabbit",
+        displayName = "Workflow Engine RABBITMQ Ingress",
+        description = "Provides RabbitMQ access to the workflow engine",
+        configPrefix = CONFIG_PREFIX_WORKFLOW_INGRESS_RABBIT
+    )
 }

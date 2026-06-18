@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress
+package io.jrb.labs.nflowpoc.features.workflow.messaging
 
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 

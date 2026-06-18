@@ -5,17 +5,16 @@ spring:
     password:
     driver-class-name: org.h2.Driver
 
-poc:
-  broker:
-    mqtt:
-      enabled: true
-      embedded: true
-      host: localhost
-      port: 1884
-    rabbit:
-      enabled: false
-
 management:
   health:
     rabbit:
       enabled: false
+
+workflow.ingress.mqtt:
+  enabled: true
+  embedded: true
+  host: localhost
+  port: 1884
+
+workflow.ingress.rabbit:
+  enabled: false

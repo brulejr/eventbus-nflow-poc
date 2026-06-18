@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,14 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress.mqtt
+package io.jrb.labs.nflowpoc.features.ingress.mqtt
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.datatypes.MqttQos
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
-import io.jrb.labs.nflowpoc.ingress.InboundMessage
-import io.jrb.labs.nflowpoc.ingress.InboundWorkflowDispatcher
+import io.jrb.labs.nflowpoc.features.workflow.messaging.InboundMessage
+import io.jrb.labs.nflowpoc.features.workflow.messaging.InboundWorkflowDispatcher
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
@@ -45,18 +45,18 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-@Component
-@EnableConfigurationProperties(MqttProperties::class)
-@ConditionalOnProperty(
-    prefix = "poc.broker.mqtt",
-    name = ["enabled"],
-    havingValue = "true",
-    matchIfMissing = false
-)
+//@Component
+//@EnableConfigurationProperties(IngressMqttDatafill::class)
+//@ConditionalOnProperty(
+//    prefix = "poc.broker.mqtt",
+//    name = ["enabled"],
+//    havingValue = "true",
+//    matchIfMissing = false
+//)
 class HiveMqttIngressAdapter(
-    private val mqttProperties: MqttProperties,
-    private val objectMapper: ObjectMapper,
-    private val dispatcher: InboundWorkflowDispatcher
+    private val datafill: IngressMqttDatafill,
+    private val dispatcher: InboundWorkflowDispatcher,
+    private val objectMapper: ObjectMapper
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -75,8 +75,8 @@ class HiveMqttIngressAdapter(
         MqttClient.builder()
             .useMqttVersion3()
             .identifier("eventbus-nflow-poc-${UUID.randomUUID()}")
-            .serverHost(mqttProperties.host)
-            .serverPort(mqttProperties.port)
+            .serverHost(datafill.host)
+            .serverPort(datafill.port)
             .buildAsync()
 
     /**
@@ -92,9 +92,9 @@ class HiveMqttIngressAdapter(
 
         log.info(
             "Starting MQTT ingress adapter host={} port={} topic={}",
-            mqttProperties.host,
-            mqttProperties.port,
-            mqttProperties.topic
+            datafill.host,
+            datafill.port,
+            datafill.topic
         )
 
         connectWithRetry(initialDelayMs = 0)
@@ -121,15 +121,15 @@ class HiveMqttIngressAdapter(
 
         log.info(
             "Connecting MQTT client to {}:{} and subscribing to topic {}",
-            mqttProperties.host,
-            mqttProperties.port,
-            mqttProperties.topic
+            datafill.host,
+            datafill.port,
+            datafill.topic
         )
 
         client.connect()
             .thenCompose {
                 client.subscribeWith()
-                    .topicFilter(mqttProperties.topic)
+                    .topicFilter(datafill.topic)
                     .qos(MqttQos.AT_LEAST_ONCE)
                     .callback { publish ->
                         handleMessage(
@@ -142,18 +142,18 @@ class HiveMqttIngressAdapter(
             .whenComplete { _, error ->
                 if (error == null) {
                     connected.set(true)
-                    log.info("MQTT subscription established topic={}", mqttProperties.topic)
+                    log.info("MQTT subscription established topic={}", datafill.topic)
                 } else {
                     connected.set(false)
                     log.warn(
                         "MQTT connection/subscription failed for {}:{} topic={}; retrying in {} ms",
-                        mqttProperties.host,
-                        mqttProperties.port,
-                        mqttProperties.topic,
-                        mqttProperties.retryDelayMs,
+                        datafill.host,
+                        datafill.port,
+                        datafill.topic,
+                        datafill.retryDelayMs,
                         error
                     )
-                    connectWithRetry(initialDelayMs = mqttProperties.retryDelayMs)
+                    connectWithRetry(initialDelayMs = datafill.retryDelayMs)
                 }
             }
     }

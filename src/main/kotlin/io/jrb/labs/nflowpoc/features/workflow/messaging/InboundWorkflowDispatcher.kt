@@ -22,30 +22,33 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.ingress
+package io.jrb.labs.nflowpoc.features.workflow.messaging
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
+import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.util.UUID
 
 @Component
-class InboundMessageParser(
-    private val objectMapper: ObjectMapper
+class InboundWorkflowDispatcher(
+    private val workflowLaunchService: WorkflowLaunchService,
+    private val metrics: WorkflowMetrics
 ) {
-    fun parse(source: WorkflowSource, rawBody: String): InboundMessage {
-        val root = objectMapper.readValue(rawBody, object : TypeReference<Map<String, Any?>>() {})
-        val workflowType = root["workflowType"] as? String ?: "inbound-message-workflow"
-        val correlationId = root["correlationId"] as? String
-        @Suppress("UNCHECKED_CAST")
-        val payload = root["payload"] as? Map<String, Any?> ?: emptyMap()
+    private val log = LoggerFactory.getLogger(javaClass)
 
-        return InboundMessage(
-            source = source,
-            correlationId = correlationId,
-            workflowType = workflowType,
-            payload = payload,
-            rawBody = rawBody
+    fun dispatch(message: InboundMessage): WorkflowTicket {
+        metrics.ingressReceived(message.source, message.workflowType)
+        log.info("Dispatching inbound message source={} workflowType={} correlationId={}", message.source, message.workflowType, message.correlationId)
+        return workflowLaunchService.startAsync(
+            WorkflowStartCommand(
+                workflowType = message.workflowType,
+                correlationId = message.correlationId ?: UUID.randomUUID().toString(),
+                source = message.source,
+                payload = message.payload
+            )
         )
     }
 }
