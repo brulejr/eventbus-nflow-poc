@@ -24,7 +24,10 @@
 
 package io.jrb.labs.nflowpoc.features.workflow
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.FeatureDescriptors.CONFIG_PREFIX_WORKFLOW_ENGINE
+import io.jrb.labs.nflowpoc.features.workflow.messaging.InboundMessageParser
+import io.jrb.labs.nflowpoc.features.workflow.messaging.InboundWorkflowDispatcher
 import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowEngineAdapter
 import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
@@ -62,6 +65,19 @@ class WorkflowEngineConfiguration {
     @Bean
     fun workflowMetrics(meterRegistry: MeterRegistry) : WorkflowMetrics {
         return WorkflowMetrics(meterRegistry)
+    }
+
+    @Bean
+    fun inboundMessageParser(objectMapper: ObjectMapper): InboundMessageParser {
+        return InboundMessageParser(objectMapper)
+    }
+
+    @Bean
+    fun inboundWorkflowDispatcher(
+        workflowLaunchService: WorkflowLaunchService,
+        metrics: WorkflowMetrics
+    ): InboundWorkflowDispatcher {
+        return InboundWorkflowDispatcher(workflowLaunchService, metrics)
     }
 
 }

@@ -27,9 +27,7 @@ package io.jrb.labs.nflowpoc.features.workflow.messaging
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
-import org.springframework.stereotype.Component
 
-@Component
 class InboundMessageParser(
     private val objectMapper: ObjectMapper
 ) {

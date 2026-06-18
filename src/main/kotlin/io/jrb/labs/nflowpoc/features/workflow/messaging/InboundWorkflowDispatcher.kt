@@ -25,14 +25,12 @@
 package io.jrb.labs.nflowpoc.features.workflow.messaging
 
 import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
-import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
+import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import java.util.UUID
 
-@Component
 class InboundWorkflowDispatcher(
     private val workflowLaunchService: WorkflowLaunchService,
     private val metrics: WorkflowMetrics
