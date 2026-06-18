@@ -29,14 +29,13 @@ nFlow.
 src/main/kotlin/io/jrb/labs/nflowpoc/features/workflow/service/nflow
 ```
 
-The adapter currently uses reflection to call the nFlow 11 runtime boundary:
+The adapter uses typed nFlow 11 collaborators:
 
 - `io.nflow.engine.workflow.instance.WorkflowInstanceFactory`
 - `io.nflow.engine.service.WorkflowInstanceService`
 
-This keeps the rest of the POC compile-stable while the exact nFlow 11 Spring Boot API is validated.
-Once that path is proven locally, replace the reflection calls with strongly typed nFlow calls behind
-the same `WorkflowEngineAdapter` interface.
+The nFlow-specific calls remain behind the same `WorkflowEngineAdapter` interface, so ingress, ticketing,
+metrics, and REST blocking behavior stay independent from the runtime implementation.
 
 ## State variables passed to nFlow
 
@@ -124,6 +123,17 @@ where wf.external_id = '<ticket-id>'
 order by ws.action_id, ws.state_key;
 ```
 
-Remaining validation:
+## Near-Term Follow-Up
 
-- [ ] Replace reflection in `NflowWorkflowEngineAdapter` with typed nFlow API calls.
+- [ ] Document the IntelliJ H2 database connection workflow, including optional nFlow H2 TCP settings.
+- [ ] Add a repeatable local smoke-test script for the three starter workflows.
+- [ ] Decide whether `WorkflowResultStore` should remain in-memory for the POC or gain a persisted local implementation.
+- [ ] Reduce local nFlow/H2 log noise once the debugging workflow is comfortable.
+
+## Backlog
+
+- [ ] Exercise the nFlow profile against the Docker/PostgreSQL runtime path.
+- [ ] Promote the stabilized local nFlow settings into Docker configuration.
+- [ ] Align the Docker app port mapping with `server.port`.
+- [ ] Move reusable MQTT client plumbing into `ksb-commons` after the ingress behavior stabilizes.
+- [ ] Add OpenTelemetry tracing once the workflow identity model stabilizes.

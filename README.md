@@ -46,8 +46,7 @@ Default mode uses `SimulatedWorkflowEngineAdapter` under `@Profile("!nflow")`. I
 exercise REST, MQTT, RabbitMQ, tickets, blocking waits, and metrics without requiring an nFlow runtime.
 
 The `nflow` profile enables `NflowConfig` and `NflowWorkflowEngineAdapter`. The adapter starts nFlow
-instances through the nFlow `WorkflowInstanceFactory` and `WorkflowInstanceService` boundary using
-reflection while the exact nFlow 11 Spring Boot API is validated.
+instances through typed nFlow `WorkflowInstanceFactory` and `WorkflowInstanceService` collaborators.
 
 Canonical workflow types are defined in `WorkflowTypes`:
 
@@ -230,9 +229,6 @@ Docker profile defaults:
 
 ## Next steps
 
-1. Validate the `standalone,nflow` profile against nFlow 11 and replace the reflection adapter with a
-   strongly typed adapter.
-2. Replace lightweight workflow type placeholders with concrete nFlow `WorkflowDefinition` classes.
-3. Align the Docker app port mapping with `server.port`.
-4. Move reusable MQTT client plumbing into `ksb-commons` after the ingress behavior stabilizes.
-5. Add OpenTelemetry tracing once the workflow identity model stabilizes.
+1. Align the Docker app port mapping with `server.port`.
+2. Move reusable MQTT client plumbing into `ksb-commons` after the ingress behavior stabilizes.
+3. Add OpenTelemetry tracing once the workflow identity model stabilizes.

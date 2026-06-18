@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,45 +25,37 @@
 package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowEngineAdapter
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowEngineHandle
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
+import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowEngineAdapter
+import io.nflow.engine.service.WorkflowInstanceService
+import io.nflow.engine.workflow.instance.WorkflowInstanceFactory
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 /**
  * nFlow-backed WorkflowEngineAdapter.
- *
- * This implementation deliberately uses reflection at the boundary with nFlow. The goal is to keep
- * the rest of the POC stable while the exact nFlow 11 Spring Boot API is validated locally. If this
- * reflection adapter proves out, it can be replaced with a strongly typed adapter using the same
- * WorkflowEngineAdapter interface.
  */
 @Component
 @Profile("nflow")
 class NflowWorkflowEngineAdapter(
-    private val applicationContext: ApplicationContext,
+    private val workflowInstanceService: WorkflowInstanceService,
+    private val workflowInstanceFactory: WorkflowInstanceFactory,
     private val objectMapper: ObjectMapper
 ) : WorkflowEngineAdapter {
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun start(command: WorkflowStartCommand, ticketId: String): WorkflowEngineHandle {
-        val workflowInstanceService = bean("io.nflow.engine.service.WorkflowInstanceService")
-        val workflowInstanceFactory = bean("io.nflow.engine.workflow.instance.WorkflowInstanceFactory")
-
-        val builder = invokeNoArgs(workflowInstanceFactory, "newWorkflowInstanceBuilder")
-        invokeFluently(builder, "setType", command.workflowType)
-        invokeFluently(builder, "setExternalId", ticketId)
-        invokeFluently(builder, "putStateVariable", NflowVars.TICKET_ID, ticketId)
-        invokeFluently(builder, "putStateVariable", NflowVars.CORRELATION_ID, command.correlationId)
-        invokeFluently(builder, "putStateVariable", NflowVars.SOURCE, command.source.name)
-        invokeFluently(builder, "putStateVariable", NflowVars.PAYLOAD_JSON, objectMapper.writeValueAsString(command.payload))
-
-        val instance = invokeNoArgs(builder, "build")
-        val id = invokeFirstMatching(workflowInstanceService, "insertWorkflowInstance", instance)
-            ?: error("nFlow insertWorkflowInstance returned null for ticketId=$ticketId")
+        val instance = workflowInstanceFactory.newWorkflowInstanceBuilder()
+            .setType(command.workflowType)
+            .setExternalId(ticketId)
+            .putStateVariable(NflowVars.TICKET_ID, ticketId)
+            .putStateVariable(NflowVars.CORRELATION_ID, command.correlationId)
+            .putStateVariable(NflowVars.SOURCE, command.source.name)
+            .putStateVariable(NflowVars.PAYLOAD_JSON, objectMapper.writeValueAsString(command.payload))
+            .build()
+        val id = workflowInstanceService.insertWorkflowInstance(instance)
 
         log.info(
             "Started nFlow workflow type={} ticketId={} nflowInstanceId={}",
@@ -72,32 +64,5 @@ class NflowWorkflowEngineAdapter(
             id
         )
         return WorkflowEngineHandle(id.toString())
-    }
-
-    private fun bean(className: String): Any {
-        val type = Class.forName(className)
-        return applicationContext.getBean(type)
-    }
-
-    private fun invokeNoArgs(target: Any, methodName: String): Any =
-        target.javaClass.methods
-            .firstOrNull { it.name == methodName && it.parameterCount == 0 }
-            ?.invoke(target)
-            ?: error("Could not invoke no-arg method $methodName on ${target.javaClass.name}")
-
-    private fun invokeFluently(target: Any, methodName: String, vararg args: Any): Any =
-        invokeFirstMatching(target, methodName, *args) ?: target
-
-    private fun invokeFirstMatching(target: Any, methodName: String, vararg args: Any): Any? {
-        val method = target.javaClass.methods.firstOrNull { candidate ->
-            candidate.name == methodName &&
-                candidate.parameterCount == args.size &&
-                candidate.parameterTypes.zip(args).all { (parameterType, value) ->
-                    parameterType.isAssignableFrom(value.javaClass)
-                }
-        } ?: error(
-            "Could not find method $methodName(${args.joinToString { it.javaClass.name }}) on ${target.javaClass.name}"
-        )
-        return method.invoke(target, *args)
     }
 }
