@@ -1,0 +1,82 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Jon Brule
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package io.jrb.labs.nflowpoc.features.workflow.definition
+
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
+import org.springframework.stereotype.Component
+
+@Component
+class ComplexWorkflowDefinition : WorkflowDefinitionSpec {
+    override val id: String = "complex"
+    override val description: String = "Multi-step starter definition backed by the blocking execution engine."
+    override val engineWorkflowType: String = WorkflowTypes.BLOCKING_REST
+
+    override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
+        val parameters = parameters(payload)
+        return mapOf(
+            "name" to id,
+            "parameters" to parameters,
+            "steps" to steps(payload),
+            "output" to (payload["output"] ?: defaultOutput(parameters)),
+            "failValidation" to (payload["failValidation"] == true),
+            "failPreparation" to (payload["failPreparation"] == true),
+            "failExecution" to (payload["failExecution"] == true)
+        )
+    }
+
+    private fun parameters(payload: Map<String, Any?>): Map<String, Any?> =
+        mapValue(payload["parameters"]) ?: payload.filterKeys { it !in RESERVED_KEYS }
+
+    private fun steps(payload: Map<String, Any?>): List<String> =
+        listValue(payload["steps"]).ifEmpty { DEFAULT_STEPS }
+
+    private fun defaultOutput(parameters: Map<String, Any?>): Map<String, Any?> =
+        mapOf(
+            "status" to "accepted",
+            "parameters" to parameters
+        )
+
+    @Suppress("UNCHECKED_CAST")
+    private fun mapValue(value: Any?): Map<String, Any?>? =
+        value as? Map<String, Any?>
+
+    private fun listValue(value: Any?): List<String> =
+        (value as? List<*>)
+            ?.mapNotNull { it?.toString()?.takeIf(String::isNotBlank) }
+            ?: emptyList()
+
+    companion object {
+        private val DEFAULT_STEPS = listOf("validate", "prepare", "execute", "collectOutput")
+
+        private val RESERVED_KEYS = setOf(
+            "definition",
+            "workflowDefinition",
+            "name",
+            "output",
+            "steps",
+            "failValidation",
+            "failPreparation",
+            "failExecution"
+        )
+    }
+}
+

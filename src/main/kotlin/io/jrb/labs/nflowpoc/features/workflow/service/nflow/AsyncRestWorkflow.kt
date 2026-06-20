@@ -26,6 +26,7 @@ package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
+import io.jrb.labs.nflowpoc.features.workflow.service.execution.AsyncRestExecutionEngine
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
 import io.nflow.engine.workflow.curated.State
 import io.nflow.engine.workflow.definition.NextAction
@@ -39,29 +40,24 @@ import org.springframework.stereotype.Component
 @Profile("nflow")
 class AsyncRestWorkflow(
     objectMapper: ObjectMapper,
-    resultStore: WorkflowResultStore
+    resultStore: WorkflowResultStore,
+    private val executionEngine: AsyncRestExecutionEngine
 ) : NflowWorkflowSupport(WorkflowTypes.ASYNC_REST, BEGIN, ERROR, objectMapper, resultStore) {
 
     init {
-        name = "Simple starter workflow"
-        description = "Minimal nFlow workflow for proving async REST launch, ticketing, and completion."
+        name = "Generic async execution engine"
+        description = "Minimal nFlow workflow that executes a named command with parameters and output."
         permit(BEGIN, DONE, ERROR)
     }
 
     fun begin(execution: StateExecution): NextAction {
         markRunning(execution)
-        val payload = payload(execution)
-        complete(
-            execution,
-            mapOf(
-                "example" to "simple",
-                "workflowType" to WorkflowTypes.ASYNC_REST,
-                "correlationId" to correlationId(execution),
-                "source" to source(execution).name,
-                "payloadKeys" to payload.keys.sorted()
-            )
+        return applyStep(
+            execution = execution,
+            step = executionEngine.execute(command(execution, WorkflowTypes.ASYNC_REST)),
+            nextState = DONE,
+            errorState = ERROR
         )
-        return NextAction.moveToState(DONE, "Simple workflow completed")
     }
 
     companion object {

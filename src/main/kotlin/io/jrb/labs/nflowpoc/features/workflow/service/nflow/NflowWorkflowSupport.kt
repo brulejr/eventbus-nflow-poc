@@ -27,6 +27,8 @@ package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
+import io.jrb.labs.nflowpoc.features.workflow.service.execution.WorkflowExecutionCommand
+import io.jrb.labs.nflowpoc.features.workflow.service.execution.WorkflowExecutionStep
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
 import io.nflow.engine.workflow.definition.NextAction
 import io.nflow.engine.workflow.definition.StateExecution
@@ -55,6 +57,37 @@ abstract class NflowWorkflowSupport(
         }
     }
 
+    protected fun command(
+        execution: StateExecution,
+        workflowType: String,
+        defaultSteps: List<String> = emptyList()
+    ): WorkflowExecutionCommand =
+        WorkflowExecutionCommand.fromPayload(
+            workflowType = workflowType,
+            ticketId = ticketId(execution),
+            correlationId = correlationId(execution),
+            source = source(execution),
+            payload = payload(execution),
+            defaultSteps = defaultSteps
+        )
+
+    protected fun applyStep(
+        execution: StateExecution,
+        step: WorkflowExecutionStep,
+        nextState: WorkflowState,
+        errorState: WorkflowState
+    ): NextAction {
+        step.stateVariables.forEach { (key, value) ->
+            value?.let { execution.setVariable(key, stateVariableValue(it)) }
+        }
+        if (step.failed) {
+            resultStore.markFailed(ticketId(execution), step.failure ?: step.message)
+            return NextAction.stopInState(errorState, step.message)
+        }
+        step.result?.let { resultStore.markCompleted(ticketId(execution), it) }
+        return NextAction.moveToState(nextState, step.message)
+    }
+
     protected fun ticketId(execution: StateExecution): String =
         execution.getVariable(NflowVars.TICKET_ID, execution.workflowInstanceExternalId)
 
@@ -77,4 +110,12 @@ abstract class NflowWorkflowSupport(
         resultStore.markFailed(ticketId(execution), message)
         return NextAction.stopInState(errorState, message)
     }
+
+    private fun stateVariableValue(value: Any): Any =
+        when (value) {
+            is String,
+            is Number,
+            is Boolean -> value
+            else -> runCatching { objectMapper.writeValueAsString(value) }.getOrDefault(value.toString())
+        }
 }

@@ -37,6 +37,24 @@ The adapter uses typed nFlow 11 collaborators:
 The nFlow-specific calls remain behind the same `WorkflowEngineAdapter` interface, so ingress, ticketing,
 metrics, and REST blocking behavior stay independent from the runtime implementation.
 
+Execution behavior lives outside the nFlow package:
+
+```text
+src/main/kotlin/io/jrb/labs/nflowpoc/features/workflow/service/execution
+```
+
+Those classes are plain Kotlin/Spring services. They do not extend nFlow types and do not import
+`StateExecution`, `WorkflowDefinition`, `WorkflowState`, or `NextAction`.
+
+Named reusable workflow definitions live in a separate layer:
+
+```text
+src/main/kotlin/io/jrb/labs/nflowpoc/features/workflow/definition
+```
+
+These classes describe reusable starter definitions and expand caller input into the generic command
+shape expected by the execution engines.
+
 ## State variables passed to nFlow
 
 The nFlow adapter writes these variables when inserting the workflow instance:
@@ -53,9 +71,15 @@ for REST clients and broker-driven messages, while the nFlow instance ID remains
 
 Canonical workflow type names are defined in `WorkflowTypes`:
 
-- `async-rest-workflow`: simple starter workflow.
-- `blocking-rest-workflow`: complex multi-step starter workflow.
-- `inbound-message-workflow`: rtl433-data-pipeline simulator.
+- `async-rest-workflow`: generic one-step async execution engine.
+- `blocking-rest-workflow`: generic blocking multi-step execution engine.
+- `inbound-message-workflow`: generic inbound pipeline execution engine.
+
+Named starter workflow definitions are:
+
+- `simple`: one-step starter definition backed by `async-rest-workflow`.
+- `complex`: multi-step starter definition backed by `blocking-rest-workflow`.
+- `rtl433-data-pipeline`: rtl_433 telemetry starter definition backed by `inbound-message-workflow`.
 
 REST defaults:
 
@@ -69,18 +93,94 @@ Broker defaults:
   `inbound-message-workflow`.
 - MQTT messages are mapped through `MqttWorkflowMessage`; include `workflowType` explicitly.
 
-## Starter nFlow definitions
+`WorkflowDefinitionResolver` runs before the workflow engine adapter. It supports either style:
 
-The `nflow` profile now contributes three Spring `WorkflowDefinition` beans:
+- Set `workflowType` to a named definition, such as `complex`.
+- Keep the endpoint's default engine workflow type and set payload `definition`, `workflowDefinition`, or
+  `name` to a named definition.
 
-- `AsyncRestWorkflow`: simple `begin -> done` flow that proves launch and completion.
-- `BlockingRestWorkflow`: multi-step flow with validation, inventory reservation, payment authorization,
-  fulfillment scheduling, and notification states.
-- `InboundMessageWorkflow`: rtl433-style pipeline with ingest, decode, normalize, classify, enrich, and
-  route states.
+When a definition is found, the resolver changes the command's `workflowType` to the backing engine
+workflow type and replaces the payload with the expanded generic execution command.
 
-All three definitions share `NflowWorkflowSupport`, which parses the payload state variable and updates
-`WorkflowResultStore` when the workflow reaches a terminal outcome.
+## Starter Workflow Definitions
+
+The three starter definitions are code, not nFlow state graphs:
+
+- `SimpleWorkflowDefinition`: expands `simple` into `{ name, parameters, output }` for
+  `async-rest-workflow`.
+- `ComplexWorkflowDefinition`: expands `complex` into `{ name, parameters, steps, output }` for
+  `blocking-rest-workflow`.
+- `Rtl433DataPipelineWorkflowDefinition`: maps rtl_433-style raw telemetry into `{ name, parameters,
+  output, routingKey, routeDestination }` for `inbound-message-workflow`.
+
+The rtl433 starter's domain mapping belongs here. nFlow and the inbound execution engine still only see a
+generic named command with parameters, output, and routing metadata.
+
+## nFlow Definitions And Execution Engines
+
+The `nflow` profile contributes three Spring `WorkflowDefinition` beans. These classes define the nFlow
+state graph and delegate each state method to a separate execution engine:
+
+- `AsyncRestWorkflow`: nFlow definition for `begin -> done`; delegates to `AsyncRestExecutionEngine`.
+- `BlockingRestWorkflow`: nFlow definition for
+  `begin -> validate -> prepare -> execute -> collectOutput -> completeExecution -> done`; delegates to
+  `BlockingRestExecutionEngine`.
+- `InboundMessageWorkflow`: nFlow definition for
+  `ingest -> inspect -> transform -> route -> completePipeline -> done`; delegates to
+  `InboundMessageExecutionEngine`.
+
+All three definitions share `NflowWorkflowSupport`, which is now adapter glue. It parses nFlow state into
+a `WorkflowExecutionCommand`, applies `WorkflowExecutionStep` state variables back to nFlow, updates
+`WorkflowResultStore` when an execution engine returns a terminal result or failure, and converts the
+engine outcome to a nFlow `NextAction`.
+
+## Generic execution contract
+
+The execution engines are not business workflows. They do not know about orders, devices, rtl433, nFlow,
+or any particular domain flow. Each engine receives a generic command:
+
+```json
+{
+  "name": "command-or-workflow-name",
+  "parameters": {
+    "any": "caller supplied input"
+  },
+  "output": {
+    "any": "caller supplied expected or simulated result"
+  }
+}
+```
+
+The result envelope uses the same shape:
+
+```json
+{
+  "engine": "blocking-rest-workflow",
+  "name": "command-or-workflow-name",
+  "parameters": {},
+  "output": {},
+  "workflowPath": []
+}
+```
+
+The blocking engine also accepts `steps` to describe the caller's logical command steps. The engine does
+not interpret those steps; it records them in the result.
+
+The inbound engine also accepts `routingKey` and `routeDestination`. The engine routes by those generic
+values without interpreting the domain payload.
+
+Failure simulation is generic:
+
+- `failValidation: true` rejects the blocking engine during validation.
+- `failPreparation: true` rejects the blocking engine during preparation.
+- `failExecution: true` rejects the blocking engine during execution.
+- `failInspection: true` rejects the inbound engine during inspection.
+- `failTransform: true` rejects the inbound engine during transform.
+- `failRoute: true` rejects the inbound engine during route.
+
+The rtl433-data-pipeline starter example is now a payload submitted to `InboundMessageWorkflow`, not
+logic embedded inside the nFlow definition. Its normalized measurements, device metadata, and routing
+metadata live in `parameters`, `output`, `routingKey`, and `routeDestination`.
 
 ## Completion contract
 
@@ -161,7 +261,9 @@ BASE_URL=http://localhost:4500 scripts/nflow-smoke-local.sh
 ```
 
 The script requires `curl` and `jq`. It validates the management health endpoint, starts the async REST,
-blocking REST, and inbound-message starter workflows, and confirms each ticket reaches `COMPLETED`.
+blocking REST, and inbound-message execution engines, confirms each successful ticket reaches
+`COMPLETED`, and checks the generic `{ name, parameters, output }` result shape. It also exercises the
+blocking engine validation-failure branch.
 
 ## Result store decision
 

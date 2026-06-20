@@ -24,6 +24,7 @@
 
 package io.jrb.labs.nflowpoc.features.workflow.service
 
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionResolver
 import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunResult
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
@@ -35,17 +36,24 @@ import java.time.Duration
 class WorkflowLaunchService(
     private val workflowEngineAdapter: WorkflowEngineAdapter,
     private val resultStore: WorkflowResultStore,
-    private val metrics: WorkflowMetrics
+    private val metrics: WorkflowMetrics,
+    private val definitionResolver: WorkflowDefinitionResolver
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun startAsync(command: WorkflowStartCommand): WorkflowTicket {
-        log.info("Starting workflow type={} source={} correlationId={}", command.workflowType, command.source, command.correlationId)
-        metrics.workflowStarted(command.workflowType, command.source)
+        val resolvedCommand = definitionResolver.resolve(command)
+        log.info(
+            "Starting workflow type={} source={} correlationId={}",
+            resolvedCommand.workflowType,
+            resolvedCommand.source,
+            resolvedCommand.correlationId
+        )
+        metrics.workflowStarted(resolvedCommand.workflowType, resolvedCommand.source)
 
-        val ticket = resultStore.createTicket(command)
-        val handle = workflowEngineAdapter.start(command, ticket.ticketId)
+        val ticket = resultStore.createTicket(resolvedCommand)
+        val handle = workflowEngineAdapter.start(resolvedCommand, ticket.ticketId)
         return resultStore.markStarted(ticket.ticketId, handle.engineInstanceId)
     }
 

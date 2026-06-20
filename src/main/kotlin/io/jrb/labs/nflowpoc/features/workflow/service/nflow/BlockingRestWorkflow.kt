@@ -26,6 +26,7 @@ package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
+import io.jrb.labs.nflowpoc.features.workflow.service.execution.BlockingRestExecutionEngine
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
 import io.nflow.engine.workflow.curated.State
 import io.nflow.engine.workflow.definition.NextAction
@@ -39,78 +40,74 @@ import org.springframework.stereotype.Component
 @Profile("nflow")
 class BlockingRestWorkflow(
     objectMapper: ObjectMapper,
-    resultStore: WorkflowResultStore
+    resultStore: WorkflowResultStore,
+    private val executionEngine: BlockingRestExecutionEngine
 ) : NflowWorkflowSupport(WorkflowTypes.BLOCKING_REST, BEGIN, ERROR, objectMapper, resultStore) {
 
     init {
-        name = "Complex multi-step starter workflow"
-        description = "Multi-step nFlow workflow that models validation, reservation, payment, fulfillment, and notification."
+        name = "Generic blocking multi-step execution engine"
+        description = "Multi-step nFlow workflow that validates, prepares, executes, collects output, and completes a named command."
         permit(BEGIN, VALIDATE, ERROR)
-        permit(VALIDATE, RESERVE_INVENTORY, ERROR)
-        permit(RESERVE_INVENTORY, CHARGE_PAYMENT, ERROR)
-        permit(CHARGE_PAYMENT, SCHEDULE_FULFILLMENT, ERROR)
-        permit(SCHEDULE_FULFILLMENT, NOTIFY, ERROR)
-        permit(NOTIFY, DONE, ERROR)
+        permit(VALIDATE, PREPARE, ERROR)
+        permit(PREPARE, EXECUTE, ERROR)
+        permit(EXECUTE, COLLECT_OUTPUT, ERROR)
+        permit(COLLECT_OUTPUT, COMPLETE_EXECUTION, ERROR)
+        permit(COMPLETE_EXECUTION, DONE, ERROR)
     }
 
     fun begin(execution: StateExecution): NextAction {
         markRunning(execution)
-        execution.setVariable("complexStep", "received")
-        return NextAction.moveToState(VALIDATE, "Request accepted")
+        return applyStep(
+            execution = execution,
+            step = executionEngine.begin(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            nextState = VALIDATE,
+            errorState = ERROR
+        )
     }
 
     fun validate(execution: StateExecution): NextAction {
-        val payload = payload(execution)
-        val sku = payload["sku"]?.toString()?.takeIf { it.isNotBlank() } ?: "UNKNOWN"
-        val quantity = (payload["quantity"] as? Number)?.toInt() ?: 1
-        if (quantity < 1) {
-            return failAndStop(execution, ERROR, "Quantity must be at least 1")
-        }
-        execution.setVariable("sku", sku)
-        execution.setVariable("quantity", quantity)
-        execution.setVariable("complexStep", "validated")
-        return NextAction.moveToState(RESERVE_INVENTORY, "Validated $sku x$quantity")
-    }
-
-    fun reserveInventory(execution: StateExecution): NextAction {
-        val sku = execution.getVariable("sku", "UNKNOWN")
-        val quantity = execution.getVariable("quantity", Int::class.java, 1)
-        execution.setVariable("reservationId", "res-${ticketId(execution).take(8)}")
-        execution.setVariable("complexStep", "inventory-reserved")
-        return NextAction.moveToState(CHARGE_PAYMENT, "Reserved $sku x$quantity")
-    }
-
-    fun chargePayment(execution: StateExecution): NextAction {
-        val payload = payload(execution)
-        val amount = (payload["amount"] as? Number)?.toDouble() ?: 0.0
-        execution.setVariable("paymentId", "pay-${ticketId(execution).take(8)}")
-        execution.setVariable("authorizedAmount", amount)
-        execution.setVariable("complexStep", "payment-authorized")
-        return NextAction.moveToState(SCHEDULE_FULFILLMENT, "Payment authorized")
-    }
-
-    fun scheduleFulfillment(execution: StateExecution): NextAction {
-        execution.setVariable("fulfillmentId", "ful-${ticketId(execution).take(8)}")
-        execution.setVariable("complexStep", "fulfillment-scheduled")
-        return NextAction.moveToState(NOTIFY, "Fulfillment scheduled")
-    }
-
-    fun notify(execution: StateExecution): NextAction {
-        complete(
-            execution,
-            mapOf(
-                "example" to "complex",
-                "workflowType" to WorkflowTypes.BLOCKING_REST,
-                "correlationId" to correlationId(execution),
-                "source" to source(execution).name,
-                "sku" to execution.getVariable("sku", "UNKNOWN"),
-                "quantity" to execution.getVariable("quantity", Int::class.java, 1),
-                "reservationId" to execution.getVariable("reservationId", ""),
-                "paymentId" to execution.getVariable("paymentId", ""),
-                "fulfillmentId" to execution.getVariable("fulfillmentId", "")
-            )
+        return applyStep(
+            execution = execution,
+            step = executionEngine.validate(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            nextState = PREPARE,
+            errorState = ERROR
         )
-        return NextAction.moveToState(DONE, "Notification emitted")
+    }
+
+    fun prepare(execution: StateExecution): NextAction {
+        return applyStep(
+            execution = execution,
+            step = executionEngine.prepare(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            nextState = EXECUTE,
+            errorState = ERROR
+        )
+    }
+
+    fun execute(execution: StateExecution): NextAction {
+        return applyStep(
+            execution = execution,
+            step = executionEngine.execute(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            nextState = COLLECT_OUTPUT,
+            errorState = ERROR
+        )
+    }
+
+    fun collectOutput(execution: StateExecution): NextAction {
+        return applyStep(
+            execution = execution,
+            step = executionEngine.collectOutput(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            nextState = COMPLETE_EXECUTION,
+            errorState = ERROR
+        )
+    }
+
+    fun completeExecution(execution: StateExecution): NextAction {
+        return applyStep(
+            execution = execution,
+            step = executionEngine.completeExecution(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            nextState = DONE,
+            errorState = ERROR
+        )
     }
 
     companion object {
@@ -123,21 +120,22 @@ class BlockingRestWorkflow(
         val VALIDATE: WorkflowState = State("validate", "Validate payload")
 
         @JvmField
-        val RESERVE_INVENTORY: WorkflowState = State("reserveInventory", "Reserve inventory")
+        val PREPARE: WorkflowState = State("prepare", "Prepare execution")
 
         @JvmField
-        val CHARGE_PAYMENT: WorkflowState = State("chargePayment", "Authorize payment")
+        val EXECUTE: WorkflowState = State("execute", "Execute command")
 
         @JvmField
-        val SCHEDULE_FULFILLMENT: WorkflowState = State("scheduleFulfillment", "Schedule fulfillment")
+        val COLLECT_OUTPUT: WorkflowState = State("collectOutput", "Collect output")
 
         @JvmField
-        val NOTIFY: WorkflowState = State("notify", "Emit completion notification")
+        val COMPLETE_EXECUTION: WorkflowState = State("completeExecution", "Complete execution")
 
         @JvmField
         val DONE: WorkflowState = State("done", WorkflowStateType.end, "Ticket completed")
 
         @JvmField
         val ERROR: WorkflowState = State("error", WorkflowStateType.manual, "Manual recovery required")
+
     }
 }
