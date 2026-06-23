@@ -29,12 +29,22 @@ class SimpleWorkflowDefinition : WorkflowDefinitionSpec {
     override val id: String = "simple"
     override val description: String = "One-step starter definition that echoes command parameters."
     override val engineWorkflowType: String = WorkflowTypes.ASYNC_REST
+    override val steps: List<WorkflowDefinitionStep> = listOf(
+        WorkflowDefinitionStep(
+            id = "echo-input",
+            description = "Accept the caller parameters and echo them in the workflow output.",
+            inputKeys = listOf("parameters"),
+            outputKeys = listOf("accepted", "echo")
+        )
+    )
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
         val parameters = parameters(payload)
         return mapOf(
             "name" to id,
             "parameters" to parameters,
+            "steps" to steps.map { it.id },
+            "definitionSteps" to steps.map { it.toPayload() },
             "output" to (payload["output"] ?: mapOf("accepted" to true, "echo" to parameters))
         )
     }
@@ -47,7 +57,6 @@ class SimpleWorkflowDefinition : WorkflowDefinitionSpec {
         value as? Map<String, Any?>
 
     companion object {
-        private val RESERVED_KEYS = setOf("definition", "workflowDefinition", "name", "output")
+        private val RESERVED_KEYS = setOf("definition", "workflowDefinition", "name", "output", "steps", "definitionSteps")
     }
 }
-

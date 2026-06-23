@@ -32,6 +32,7 @@ data class WorkflowExecutionCommand(
     val parameters: Map<String, Any?>,
     val output: Any?,
     val steps: List<String>,
+    val definitionSteps: List<Map<String, Any?>>,
     val routingKey: String?,
     val routeDestination: String?,
     val failValidation: Boolean,
@@ -41,8 +42,8 @@ data class WorkflowExecutionCommand(
     val failTransform: Boolean,
     val failRoute: Boolean
 ) {
-    fun resultEnvelope(extra: Map<String, Any?> = emptyMap()): Map<String, Any?> =
-        linkedMapOf<String, Any?>(
+    fun resultEnvelope(extra: Map<String, Any?> = emptyMap()): Map<String, Any?> {
+        val envelope = linkedMapOf<String, Any?>(
             "engine" to workflowType,
             "workflowType" to workflowType,
             "ticketId" to ticketId,
@@ -51,7 +52,12 @@ data class WorkflowExecutionCommand(
             "name" to name,
             "parameters" to parameters,
             "output" to output
-        ) + extra
+        )
+        if (definitionSteps.isNotEmpty()) {
+            envelope["definitionSteps"] = definitionSteps
+        }
+        return envelope + extra
+    }
 
     companion object {
         fun fromPayload(
@@ -73,6 +79,7 @@ data class WorkflowExecutionCommand(
                 output = payload["output"] ?: mapValue(payload["parameters"])
                     ?: payload.filterKeys { it !in RESERVED_PAYLOAD_KEYS },
                 steps = listValue(payload["steps"]).ifEmpty { defaultSteps },
+                definitionSteps = mapListValue(payload["definitionSteps"]),
                 routingKey = payload["routingKey"]?.toString()?.takeIf { it.isNotBlank() },
                 routeDestination = payload["routeDestination"]?.toString()?.takeIf { it.isNotBlank() },
                 failValidation = payload["failValidation"] == true,
@@ -91,6 +98,7 @@ data class WorkflowExecutionCommand(
             "parameters",
             "output",
             "steps",
+            "definitionSteps",
             "routingKey",
             "routeDestination",
             "failValidation",
@@ -109,6 +117,9 @@ data class WorkflowExecutionCommand(
             (value as? List<*>)
                 ?.mapNotNull { it?.toString()?.takeIf(String::isNotBlank) }
                 ?: emptyList()
+
+        @Suppress("UNCHECKED_CAST")
+        private fun mapListValue(value: Any?): List<Map<String, Any?>> =
+            value as? List<Map<String, Any?>> ?: emptyList()
     }
 }
-

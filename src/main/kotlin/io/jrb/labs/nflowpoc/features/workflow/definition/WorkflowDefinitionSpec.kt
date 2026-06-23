@@ -21,11 +21,26 @@
 
 package io.jrb.labs.nflowpoc.features.workflow.definition
 
+data class WorkflowDefinitionStep(
+    val id: String,
+    val description: String,
+    val inputKeys: List<String> = emptyList(),
+    val outputKeys: List<String> = emptyList()
+) {
+    fun toPayload(): Map<String, Any?> =
+        mapOf(
+            "id" to id,
+            "description" to description,
+            "inputKeys" to inputKeys,
+            "outputKeys" to outputKeys
+        )
+}
+
 interface WorkflowDefinitionSpec {
     val id: String
     val description: String
     val engineWorkflowType: String
+    val steps: List<WorkflowDefinitionStep>
 
     fun expand(payload: Map<String, Any?>): Map<String, Any?>
 }
-

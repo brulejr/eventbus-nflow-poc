@@ -29,6 +29,44 @@ class Rtl433DataPipelineWorkflowDefinition : WorkflowDefinitionSpec {
     override val id: String = "rtl433-data-pipeline"
     override val description: String = "Starter definition that maps rtl_433 device telemetry into a generic inbound pipeline command."
     override val engineWorkflowType: String = WorkflowTypes.INBOUND_MESSAGE
+    override val steps: List<WorkflowDefinitionStep> = listOf(
+        WorkflowDefinitionStep(
+            id = "ingest-raw-message",
+            description = "Accept the raw rtl_433 JSON payload from REST, MQTT, or RabbitMQ ingress.",
+            inputKeys = listOf("raw"),
+            outputKeys = listOf("raw")
+        ),
+        WorkflowDefinitionStep(
+            id = "decode-device-payload",
+            description = "Extract device identity fields such as model, id, and channel.",
+            inputKeys = listOf("raw.model", "raw.id", "raw.channel"),
+            outputKeys = listOf("deviceId")
+        ),
+        WorkflowDefinitionStep(
+            id = "normalize-measurements",
+            description = "Normalize rtl_433 measurement keys into value/unit structures.",
+            inputKeys = listOf("raw.temperature_C", "raw.humidity", "raw.battery_ok"),
+            outputKeys = listOf("normalizedMeasurements")
+        ),
+        WorkflowDefinitionStep(
+            id = "classify-sensor",
+            description = "Classify the sensor type from the decoded device model.",
+            inputKeys = listOf("raw.model", "raw.device"),
+            outputKeys = listOf("sensorType")
+        ),
+        WorkflowDefinitionStep(
+            id = "enrich-asset-metadata",
+            description = "Derive asset metadata for downstream consumers.",
+            inputKeys = listOf("deviceId", "sensorType"),
+            outputKeys = listOf("assetKey")
+        ),
+        WorkflowDefinitionStep(
+            id = "route-telemetry",
+            description = "Compute the routing key and route destination for normalized telemetry.",
+            inputKeys = listOf("deviceId", "sensorType"),
+            outputKeys = listOf("routingKey", "routeDestination")
+        )
+    )
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
         val raw = rawPayload(payload)
@@ -37,6 +75,8 @@ class Rtl433DataPipelineWorkflowDefinition : WorkflowDefinitionSpec {
         return mapOf(
             "name" to id,
             "parameters" to mapOf("raw" to raw),
+            "steps" to steps.map { it.id },
+            "definitionSteps" to steps.map { it.toPayload() },
             "output" to (payload["output"] ?: output(raw, sensorType, deviceId)),
             "routingKey" to (payload["routingKey"] ?: "rtl433.$sensorType.$deviceId"),
             "routeDestination" to (payload["routeDestination"] ?: "telemetry.normalized"),
@@ -57,6 +97,7 @@ class Rtl433DataPipelineWorkflowDefinition : WorkflowDefinitionSpec {
         mapOf(
             "deviceId" to deviceId,
             "sensorType" to sensorType,
+            "assetKey" to "$sensorType:$deviceId",
             "normalizedMeasurements" to normalizedMeasurements(raw)
         )
 
@@ -110,6 +151,8 @@ class Rtl433DataPipelineWorkflowDefinition : WorkflowDefinitionSpec {
             "parameters",
             "raw",
             "output",
+            "steps",
+            "definitionSteps",
             "routingKey",
             "routeDestination",
             "failInspection",
@@ -118,4 +161,3 @@ class Rtl433DataPipelineWorkflowDefinition : WorkflowDefinitionSpec {
         )
     }
 }
-

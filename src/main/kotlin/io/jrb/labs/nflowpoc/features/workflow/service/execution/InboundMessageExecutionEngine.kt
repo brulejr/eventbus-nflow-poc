@@ -113,6 +113,7 @@ class InboundMessageExecutionEngine {
             stateVariables = mapOf("pipelineStep" to "completed"),
             result = command.resultEnvelope(
                 mapOf(
+                    "steps" to command.steps,
                     "routingKey" to routingKey(command),
                     "routeDestination" to routeDestination(command),
                     "workflowPath" to WORKFLOW_PATH
@@ -137,4 +138,3 @@ class InboundMessageExecutionEngine {
         )
     }
 }
-

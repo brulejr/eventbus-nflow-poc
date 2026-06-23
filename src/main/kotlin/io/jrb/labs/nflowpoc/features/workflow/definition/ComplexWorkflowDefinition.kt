@@ -29,13 +29,40 @@ class ComplexWorkflowDefinition : WorkflowDefinitionSpec {
     override val id: String = "complex"
     override val description: String = "Multi-step starter definition backed by the blocking execution engine."
     override val engineWorkflowType: String = WorkflowTypes.BLOCKING_REST
+    override val steps: List<WorkflowDefinitionStep> = listOf(
+        WorkflowDefinitionStep(
+            id = "validate-request",
+            description = "Validate that the request can be accepted by the workflow definition.",
+            inputKeys = listOf("parameters"),
+            outputKeys = listOf("validationStatus")
+        ),
+        WorkflowDefinitionStep(
+            id = "prepare-execution",
+            description = "Prepare the execution context and derive the work plan.",
+            inputKeys = listOf("parameters"),
+            outputKeys = listOf("preparationStatus")
+        ),
+        WorkflowDefinitionStep(
+            id = "execute-work",
+            description = "Run the logical unit of work represented by the parameters.",
+            inputKeys = listOf("parameters"),
+            outputKeys = listOf("executionStatus")
+        ),
+        WorkflowDefinitionStep(
+            id = "collect-output",
+            description = "Collect the final workflow output and make it available to ticket callers.",
+            inputKeys = listOf("output"),
+            outputKeys = listOf("status", "parameters")
+        )
+    )
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
         val parameters = parameters(payload)
         return mapOf(
             "name" to id,
             "parameters" to parameters,
-            "steps" to steps(payload),
+            "steps" to stepIds(payload),
+            "definitionSteps" to definitionSteps(payload),
             "output" to (payload["output"] ?: defaultOutput(parameters)),
             "failValidation" to (payload["failValidation"] == true),
             "failPreparation" to (payload["failPreparation"] == true),
@@ -46,8 +73,11 @@ class ComplexWorkflowDefinition : WorkflowDefinitionSpec {
     private fun parameters(payload: Map<String, Any?>): Map<String, Any?> =
         mapValue(payload["parameters"]) ?: payload.filterKeys { it !in RESERVED_KEYS }
 
-    private fun steps(payload: Map<String, Any?>): List<String> =
-        listValue(payload["steps"]).ifEmpty { DEFAULT_STEPS }
+    private fun stepIds(payload: Map<String, Any?>): List<String> =
+        listValue(payload["steps"]).ifEmpty { steps.map { it.id } }
+
+    private fun definitionSteps(payload: Map<String, Any?>): List<Map<String, Any?>> =
+        mapListValue(payload["definitionSteps"]).ifEmpty { steps.map { it.toPayload() } }
 
     private fun defaultOutput(parameters: Map<String, Any?>): Map<String, Any?> =
         mapOf(
@@ -64,19 +94,21 @@ class ComplexWorkflowDefinition : WorkflowDefinitionSpec {
             ?.mapNotNull { it?.toString()?.takeIf(String::isNotBlank) }
             ?: emptyList()
 
-    companion object {
-        private val DEFAULT_STEPS = listOf("validate", "prepare", "execute", "collectOutput")
+    @Suppress("UNCHECKED_CAST")
+    private fun mapListValue(value: Any?): List<Map<String, Any?>> =
+        value as? List<Map<String, Any?>> ?: emptyList()
 
+    companion object {
         private val RESERVED_KEYS = setOf(
             "definition",
             "workflowDefinition",
             "name",
             "output",
             "steps",
+            "definitionSteps",
             "failValidation",
             "failPreparation",
             "failExecution"
         )
     }
 }
-

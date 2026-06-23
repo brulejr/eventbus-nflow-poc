@@ -103,6 +103,8 @@ assert_jq "async-rest-workflow" "${POLLED_RESPONSE}" '.result.name == "simple"'
 assert_jq "async-rest-workflow" "${POLLED_RESPONSE}" '.result.parameters.message == "hello"'
 assert_jq "async-rest-workflow" "${POLLED_RESPONSE}" '.result.output.accepted == true'
 assert_jq "async-rest-workflow" "${POLLED_RESPONSE}" '.result.output.echo.priority == "normal"'
+assert_jq "async-rest-workflow" "${POLLED_RESPONSE}" '.result.steps == ["echo-input"]'
+assert_jq "async-rest-workflow" "${POLLED_RESPONSE}" '.result.definitionSteps[0].id == "echo-input"'
 assert_jq "async-rest-workflow" "${POLLED_RESPONSE}" '.result.workflowPath == ["begin", "done"]'
 
 echo "Starting blocking REST workflow"
@@ -119,7 +121,9 @@ blocking_response="$(post_json "/api/workflows/rest-blocking?timeout=PT15S" '{
 assert_status "blocking-rest-workflow" "${blocking_response}" "COMPLETED"
 assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.engine == "blocking-rest-workflow"'
 assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.name == "complex"'
-assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.steps == ["validate", "prepare", "execute", "collectOutput"]'
+assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.steps == ["validate-request", "prepare-execution", "execute-work", "collect-output"]'
+assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.definitionSteps | length == 4'
+assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.definitionSteps[2].id == "execute-work"'
 assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.output.status == "accepted"'
 assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.output.parameters.resource == "SMOKE-BLOCKING"'
 assert_jq "blocking-rest-workflow" "${blocking_response}" '.result.workflowPath | length == 7'
@@ -160,9 +164,13 @@ poll_ticket_completed "inbound-message-workflow" "${inbound_ticket_id}"
 assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.engine == "inbound-message-workflow"'
 assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.name == "rtl433-data-pipeline"'
 assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.sensorType == "weather-sensor"'
+assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.assetKey == "weather-sensor:12345"'
 assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.routeDestination == "telemetry.normalized"'
 assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.normalizedMeasurements.temperature.unit == "C"'
 assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.normalizedMeasurements.humidity.unit == "%"'
+assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.steps == ["ingest-raw-message", "decode-device-payload", "normalize-measurements", "classify-sensor", "enrich-asset-metadata", "route-telemetry"]'
+assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.definitionSteps | length == 6'
+assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.definitionSteps[2].id == "normalize-measurements"'
 assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.workflowPath | length == 6'
 
 echo "nFlow local smoke test completed successfully"

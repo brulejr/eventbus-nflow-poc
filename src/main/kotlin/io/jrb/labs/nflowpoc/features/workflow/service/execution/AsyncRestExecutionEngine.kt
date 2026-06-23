@@ -37,7 +37,10 @@ class AsyncRestExecutionEngine {
                 "output" to command.output
             ),
             result = command.resultEnvelope(
-                mapOf("workflowPath" to WORKFLOW_PATH)
+                mapOf(
+                    "steps" to command.steps,
+                    "workflowPath" to WORKFLOW_PATH
+                )
             )
         )
 
@@ -45,4 +48,3 @@ class AsyncRestExecutionEngine {
         val WORKFLOW_PATH = listOf("begin", "done")
     }
 }
-
