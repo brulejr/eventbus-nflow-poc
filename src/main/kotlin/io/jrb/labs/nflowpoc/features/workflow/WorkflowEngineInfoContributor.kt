@@ -27,14 +27,12 @@ package io.jrb.labs.nflowpoc.features.workflow
 import io.jrb.labs.commons.actuator.FeatureInfoContributor
 import io.jrb.labs.nflowpoc.features.FeatureDescriptors.WORKFLOW_ENGINE
 
-class WorkflowEngineInfoContributor(
-    private val datafill: WorkflowEngineDatafill
-) : FeatureInfoContributor {
+class WorkflowEngineInfoContributor : FeatureInfoContributor {
 
     override val key: String = WORKFLOW_ENGINE.featureId
 
     override fun info(): Map<String, Any?> = mapOf(
-        "simulatedProcessingDelay" to datafill.simulatedProcessingDelay
+        "runtime" to "nflow"
     )
 
 }

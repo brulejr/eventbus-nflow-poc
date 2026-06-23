@@ -1,5 +1,5 @@
 spring.application.name: eventbus-nflow-poc
-spring.profiles.active: ${PROFILE:standalone}
+spring.profiles.active: ${PROFILE:standalone,nflow,nflow.db.h2}
 
 spring:
   jackson:
@@ -27,8 +27,6 @@ management:
       application: ${spring.application.name}
 
 poc:
-  workflow:
-    simulated-processing-delay: PT1S
   broker:
     mqtt:
       client-id: eventbus-nflow-poc

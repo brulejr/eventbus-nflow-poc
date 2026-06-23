@@ -17,11 +17,7 @@ interface WorkflowEngineAdapter {
 4. Store the returned `engineInstanceId`.
 5. Let async callers poll the ticket, or let blocking callers wait for a terminal result.
 
-## Current runtime modes
-
-`SimulatedWorkflowEngineAdapter` is active under `@Profile("!nflow")`. It completes tickets after the
-configured simulated delay and lets REST, MQTT, RabbitMQ, metrics, and blocking waits be tested without
-nFlow.
+## Current runtime mode
 
 `NflowWorkflowEngineAdapter` is active under `@Profile("nflow")`. It lives under:
 
@@ -35,7 +31,8 @@ The adapter uses typed nFlow 11 collaborators:
 - `io.nflow.engine.service.WorkflowInstanceService`
 
 The nFlow-specific calls remain behind the same `WorkflowEngineAdapter` interface, so ingress, ticketing,
-metrics, and REST blocking behavior stay independent from the runtime implementation.
+metrics, and REST blocking behavior stay independent from the runtime implementation. No simulated
+workflow engine is registered; local and validation runs should include the `nflow` profile.
 
 Execution behavior lives outside the nFlow package:
 

@@ -35,18 +35,16 @@ import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@EnableConfigurationProperties(WorkflowEngineDatafill::class)
 @ConditionalOnProperty(prefix = CONFIG_PREFIX_WORKFLOW_ENGINE, name = ["enabled"], havingValue = "true", matchIfMissing = true)
 class WorkflowEngineConfiguration {
 
     @Bean
-    fun workflowEngineInfoContributor(datafill: WorkflowEngineDatafill) : WorkflowEngineInfoContributor {
-        return WorkflowEngineInfoContributor(datafill)
+    fun workflowEngineInfoContributor() : WorkflowEngineInfoContributor {
+        return WorkflowEngineInfoContributor()
     }
 
     @Bean

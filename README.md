@@ -21,8 +21,8 @@ create or update a claim ticket in `WorkflowResultStore`, and then start the con
 ## Feature layout
 
 - `api`: REST workflow endpoints and DTOs.
-- `features/workflow`: workflow launch service, result store, metrics, feature configuration, and
-  workflow engine adapters.
+- `features/workflow`: workflow launch service, result store, metrics, feature configuration, named
+  workflow definitions, and workflow engine adapters.
 - `features/workflow/messaging`: shared inbound message model, JSON parser, and dispatcher.
 - `features/workflow/service/nflow`: profile-gated nFlow adapter and workflow type constants.
 - `features/ingress/mqtt`: HiveMQ client ingress and embedded Moquette configuration.
@@ -42,17 +42,17 @@ interface WorkflowEngineAdapter {
 }
 ```
 
-Default mode uses `SimulatedWorkflowEngineAdapter` under `@Profile("!nflow")`. It is enough to
-exercise REST, MQTT, RabbitMQ, tickets, blocking waits, and metrics without requiring an nFlow runtime.
-
 The `nflow` profile enables `NflowConfig` and `NflowWorkflowEngineAdapter`. The adapter starts nFlow
 instances through typed nFlow `WorkflowInstanceFactory` and `WorkflowInstanceService` collaborators.
+No simulated workflow engine is registered; local runs should use the nFlow profile.
 
 Canonical workflow types are defined in `WorkflowTypes`:
 
-- `async-rest-workflow`: simple starter workflow for async REST.
-- `blocking-rest-workflow`: complex multi-step workflow for blocking REST.
-- `inbound-message-workflow`: rtl433-data-pipeline simulator for REST inbound tests, MQTT, and RabbitMQ.
+- `async-rest-workflow`: generic one-step async execution engine.
+- `blocking-rest-workflow`: generic blocking multi-step execution engine.
+- `inbound-message-workflow`: generic inbound pipeline execution engine.
+
+Named starter workflow definitions are `simple`, `complex`, and `rtl433-data-pipeline`.
 
 ## Message format
 
@@ -80,7 +80,7 @@ shape through `MqttWorkflowMessage`.
 ## Run standalone
 
 ```bash
-./gradlew bootRun --args='--spring.profiles.active=standalone'
+./gradlew --console=plain bootRun --args='--spring.profiles.active=standalone,nflow,nflow.db.h2'
 ```
 
 The standalone profile starts:
@@ -90,13 +90,7 @@ The standalone profile starts:
 - embedded Moquette on `localhost:1884`
 - MQTT ingress enabled on topic `poc/workflow/start`
 - RabbitMQ ingress disabled
-- simulated workflow engine unless `nflow` is also enabled
-
-To try the nFlow-backed adapter path:
-
-```bash
-./gradlew bootRun --args='--spring.profiles.active=standalone,nflow,nflow.db.h2'
-```
+- nFlow workflow engine backed by local H2
 
 ## Run with Docker
 
