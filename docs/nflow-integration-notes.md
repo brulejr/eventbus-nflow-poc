@@ -113,28 +113,28 @@ The three starter definitions are code, not nFlow state graphs:
 The rtl433 starter's domain mapping belongs here. nFlow and the inbound execution engine still only see a
 generic named command with parameters, output, and routing metadata.
 
-Each starter definition exposes domain-level steps. These are distinct from the generic nFlow shell
-states.
+Each starter definition is wired with separate Spring step beans. These domain-level steps are distinct
+from the generic nFlow shell states.
 
 `simple`:
 
-- `echo-input`
+- `EchoInputStep`: `echo-input`
 
 `complex`:
 
-- `validate-request`
-- `prepare-execution`
-- `execute-work`
-- `collect-output`
+- `ValidateRequestStep`: `validate-request`
+- `PrepareExecutionStep`: `prepare-execution`
+- `ExecuteWorkStep`: `execute-work`
+- `CollectOutputStep`: `collect-output`
 
 `rtl433-data-pipeline`:
 
-- `ingest-raw-message`
-- `decode-device-payload`
-- `normalize-measurements`
-- `classify-sensor`
-- `enrich-asset-metadata`
-- `route-telemetry`
+- `IngestRawMessageStep`: `ingest-raw-message`
+- `DecodeDevicePayloadStep`: `decode-device-payload`
+- `NormalizeMeasurementsStep`: `normalize-measurements`
+- `ClassifySensorStep`: `classify-sensor`
+- `EnrichAssetMetadataStep`: `enrich-asset-metadata`
+- `RouteTelemetryStep`: `route-telemetry`
 
 Expanded commands include both `steps`, the ordered step IDs, and `definitionSteps`, the step metadata
 with descriptions plus declared input and output keys.

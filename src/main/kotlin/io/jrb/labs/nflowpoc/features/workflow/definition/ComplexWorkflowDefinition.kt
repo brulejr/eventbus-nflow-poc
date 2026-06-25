@@ -25,35 +25,20 @@ import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 import org.springframework.stereotype.Component
 
 @Component
-class ComplexWorkflowDefinition : WorkflowDefinitionSpec {
+class ComplexWorkflowDefinition(
+    validateRequestStep: ValidateRequestStep,
+    prepareExecutionStep: PrepareExecutionStep,
+    executeWorkStep: ExecuteWorkStep,
+    collectOutputStep: CollectOutputStep
+) : WorkflowDefinitionSpec {
     override val id: String = "complex"
     override val description: String = "Multi-step starter definition backed by the blocking execution engine."
     override val engineWorkflowType: String = WorkflowTypes.BLOCKING_REST
     override val steps: List<WorkflowDefinitionStep> = listOf(
-        WorkflowDefinitionStep(
-            id = "validate-request",
-            description = "Validate that the request can be accepted by the workflow definition.",
-            inputKeys = listOf("parameters"),
-            outputKeys = listOf("validationStatus")
-        ),
-        WorkflowDefinitionStep(
-            id = "prepare-execution",
-            description = "Prepare the execution context and derive the work plan.",
-            inputKeys = listOf("parameters"),
-            outputKeys = listOf("preparationStatus")
-        ),
-        WorkflowDefinitionStep(
-            id = "execute-work",
-            description = "Run the logical unit of work represented by the parameters.",
-            inputKeys = listOf("parameters"),
-            outputKeys = listOf("executionStatus")
-        ),
-        WorkflowDefinitionStep(
-            id = "collect-output",
-            description = "Collect the final workflow output and make it available to ticket callers.",
-            inputKeys = listOf("output"),
-            outputKeys = listOf("status", "parameters")
-        )
+        validateRequestStep,
+        prepareExecutionStep,
+        executeWorkStep,
+        collectOutputStep
     )
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {

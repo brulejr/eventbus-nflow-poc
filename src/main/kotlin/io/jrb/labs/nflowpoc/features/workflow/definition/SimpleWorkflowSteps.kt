@@ -21,26 +21,13 @@
 
 package io.jrb.labs.nflowpoc.features.workflow.definition
 
-interface WorkflowDefinitionStep {
-    val id: String
-    val description: String
-    val inputKeys: List<String>
-    val outputKeys: List<String>
+import org.springframework.stereotype.Component
 
-    fun toPayload(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "description" to description,
-            "inputKeys" to inputKeys,
-            "outputKeys" to outputKeys
-        )
+@Component
+class EchoInputStep : WorkflowDefinitionStep {
+    override val id: String = "echo-input"
+    override val description: String = "Accept the caller parameters and echo them in the workflow output."
+    override val inputKeys: List<String> = listOf("parameters")
+    override val outputKeys: List<String> = listOf("accepted", "echo")
 }
 
-interface WorkflowDefinitionSpec {
-    val id: String
-    val description: String
-    val engineWorkflowType: String
-    val steps: List<WorkflowDefinitionStep>
-
-    fun expand(payload: Map<String, Any?>): Map<String, Any?>
-}

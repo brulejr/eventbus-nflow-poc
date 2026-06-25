@@ -25,47 +25,24 @@ import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 import org.springframework.stereotype.Component
 
 @Component
-class Rtl433DataPipelineWorkflowDefinition : WorkflowDefinitionSpec {
+class Rtl433DataPipelineWorkflowDefinition(
+    ingestRawMessageStep: IngestRawMessageStep,
+    decodeDevicePayloadStep: DecodeDevicePayloadStep,
+    normalizeMeasurementsStep: NormalizeMeasurementsStep,
+    classifySensorStep: ClassifySensorStep,
+    enrichAssetMetadataStep: EnrichAssetMetadataStep,
+    routeTelemetryStep: RouteTelemetryStep
+) : WorkflowDefinitionSpec {
     override val id: String = "rtl433-data-pipeline"
     override val description: String = "Starter definition that maps rtl_433 device telemetry into a generic inbound pipeline command."
     override val engineWorkflowType: String = WorkflowTypes.INBOUND_MESSAGE
     override val steps: List<WorkflowDefinitionStep> = listOf(
-        WorkflowDefinitionStep(
-            id = "ingest-raw-message",
-            description = "Accept the raw rtl_433 JSON payload from REST, MQTT, or RabbitMQ ingress.",
-            inputKeys = listOf("raw"),
-            outputKeys = listOf("raw")
-        ),
-        WorkflowDefinitionStep(
-            id = "decode-device-payload",
-            description = "Extract device identity fields such as model, id, and channel.",
-            inputKeys = listOf("raw.model", "raw.id", "raw.channel"),
-            outputKeys = listOf("deviceId")
-        ),
-        WorkflowDefinitionStep(
-            id = "normalize-measurements",
-            description = "Normalize rtl_433 measurement keys into value/unit structures.",
-            inputKeys = listOf("raw.temperature_C", "raw.humidity", "raw.battery_ok"),
-            outputKeys = listOf("normalizedMeasurements")
-        ),
-        WorkflowDefinitionStep(
-            id = "classify-sensor",
-            description = "Classify the sensor type from the decoded device model.",
-            inputKeys = listOf("raw.model", "raw.device"),
-            outputKeys = listOf("sensorType")
-        ),
-        WorkflowDefinitionStep(
-            id = "enrich-asset-metadata",
-            description = "Derive asset metadata for downstream consumers.",
-            inputKeys = listOf("deviceId", "sensorType"),
-            outputKeys = listOf("assetKey")
-        ),
-        WorkflowDefinitionStep(
-            id = "route-telemetry",
-            description = "Compute the routing key and route destination for normalized telemetry.",
-            inputKeys = listOf("deviceId", "sensorType"),
-            outputKeys = listOf("routingKey", "routeDestination")
-        )
+        ingestRawMessageStep,
+        decodeDevicePayloadStep,
+        normalizeMeasurementsStep,
+        classifySensorStep,
+        enrichAssetMetadataStep,
+        routeTelemetryStep
     )
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {

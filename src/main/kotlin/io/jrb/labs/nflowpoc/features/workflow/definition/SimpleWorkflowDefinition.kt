@@ -25,18 +25,13 @@ import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 import org.springframework.stereotype.Component
 
 @Component
-class SimpleWorkflowDefinition : WorkflowDefinitionSpec {
+class SimpleWorkflowDefinition(
+    echoInputStep: EchoInputStep
+) : WorkflowDefinitionSpec {
     override val id: String = "simple"
     override val description: String = "One-step starter definition that echoes command parameters."
     override val engineWorkflowType: String = WorkflowTypes.ASYNC_REST
-    override val steps: List<WorkflowDefinitionStep> = listOf(
-        WorkflowDefinitionStep(
-            id = "echo-input",
-            description = "Accept the caller parameters and echo them in the workflow output.",
-            inputKeys = listOf("parameters"),
-            outputKeys = listOf("accepted", "echo")
-        )
-    )
+    override val steps: List<WorkflowDefinitionStep> = listOf(echoInputStep)
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
         val parameters = parameters(payload)

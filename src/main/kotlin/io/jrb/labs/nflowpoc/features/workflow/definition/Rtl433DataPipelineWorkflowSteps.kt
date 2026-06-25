@@ -1,0 +1,73 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Jon Brule
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package io.jrb.labs.nflowpoc.features.workflow.definition
+
+import org.springframework.stereotype.Component
+
+@Component
+class IngestRawMessageStep : WorkflowDefinitionStep {
+    override val id: String = "ingest-raw-message"
+    override val description: String = "Accept the raw rtl_433 JSON payload from REST, MQTT, or RabbitMQ ingress."
+    override val inputKeys: List<String> = listOf("raw")
+    override val outputKeys: List<String> = listOf("raw")
+}
+
+@Component
+class DecodeDevicePayloadStep : WorkflowDefinitionStep {
+    override val id: String = "decode-device-payload"
+    override val description: String = "Extract device identity fields such as model, id, and channel."
+    override val inputKeys: List<String> = listOf("raw.model", "raw.id", "raw.channel")
+    override val outputKeys: List<String> = listOf("deviceId")
+}
+
+@Component
+class NormalizeMeasurementsStep : WorkflowDefinitionStep {
+    override val id: String = "normalize-measurements"
+    override val description: String = "Normalize rtl_433 measurement keys into value/unit structures."
+    override val inputKeys: List<String> = listOf("raw.temperature_C", "raw.humidity", "raw.battery_ok")
+    override val outputKeys: List<String> = listOf("normalizedMeasurements")
+}
+
+@Component
+class ClassifySensorStep : WorkflowDefinitionStep {
+    override val id: String = "classify-sensor"
+    override val description: String = "Classify the sensor type from the decoded device model."
+    override val inputKeys: List<String> = listOf("raw.model", "raw.device")
+    override val outputKeys: List<String> = listOf("sensorType")
+}
+
+@Component
+class EnrichAssetMetadataStep : WorkflowDefinitionStep {
+    override val id: String = "enrich-asset-metadata"
+    override val description: String = "Derive asset metadata for downstream consumers."
+    override val inputKeys: List<String> = listOf("deviceId", "sensorType")
+    override val outputKeys: List<String> = listOf("assetKey")
+}
+
+@Component
+class RouteTelemetryStep : WorkflowDefinitionStep {
+    override val id: String = "route-telemetry"
+    override val description: String = "Compute the routing key and route destination for normalized telemetry."
+    override val inputKeys: List<String> = listOf("deviceId", "sensorType")
+    override val outputKeys: List<String> = listOf("routingKey", "routeDestination")
+}
+
