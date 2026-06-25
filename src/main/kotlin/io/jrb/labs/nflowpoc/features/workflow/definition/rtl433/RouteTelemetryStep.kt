@@ -19,15 +19,22 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
 
-import org.springframework.stereotype.Component
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-@Component
-class EchoInputStep : WorkflowDefinitionStep {
-    override val id: String = "echo-input"
-    override val description: String = "Accept the caller parameters and echo them in the workflow output."
-    override val inputKeys: List<String> = listOf("parameters")
-    override val outputKeys: List<String> = listOf("accepted", "echo")
+class RouteTelemetryStep : WorkflowDefinitionStep {
+    override val id: String = "route-telemetry"
+    override val description: String = "Compute the routing key and route destination for normalized telemetry."
+    override val inputKeys: List<String> = listOf("deviceId", "sensorType")
+    override val outputKeys: List<String> = listOf("routingKey", "routeDestination")
+
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
+        val deviceId = input["deviceId"]?.toString() ?: "unknown-device"
+        val sensorType = input["sensorType"]?.toString() ?: "generic-rtl433-sensor"
+        return mapOf(
+            "routingKey" to "rtl433.$sensorType.$deviceId",
+            "routeDestination" to "telemetry.normalized"
+        )
+    }
 }
-

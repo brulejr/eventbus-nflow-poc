@@ -19,37 +19,25 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.simple
 
-interface WorkflowDefinitionStep {
-    val id: String
-    val description: String
-    val inputKeys: List<String>
-    val outputKeys: List<String>
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-    fun execute(input: Map<String, Any?>): Map<String, Any?>
+class EchoInputStep : WorkflowDefinitionStep {
+    override val id: String = "echo-input"
+    override val description: String = "Accept the caller parameters and echo them in the workflow output."
+    override val inputKeys: List<String> = listOf("parameters")
+    override val outputKeys: List<String> = listOf("accepted", "echo")
 
-    fun toPayload(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "description" to description,
-            "inputKeys" to inputKeys,
-            "outputKeys" to outputKeys
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
+        val parameters = mapValue(input["parameters"]) ?: emptyMap()
+        return mapOf(
+            "accepted" to true,
+            "echo" to parameters
         )
-}
+    }
 
-interface WorkflowDefinitionSpec {
-    val id: String
-    val description: String
-    val engineWorkflowType: String
-    val steps: List<WorkflowDefinitionStep>
-
-    fun expand(payload: Map<String, Any?>): Map<String, Any?>
-
-    fun executeSteps(initialContext: Map<String, Any?>): Map<String, Any?> =
-        steps.fold(initialContext.toMutableMap()) { context, step ->
-            context.apply {
-                putAll(step.execute(context))
-            }
-        }
+    @Suppress("UNCHECKED_CAST")
+    private fun mapValue(value: Any?): Map<String, Any?>? =
+        value as? Map<String, Any?>
 }

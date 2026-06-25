@@ -19,37 +19,19 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
 
-interface WorkflowDefinitionStep {
-    val id: String
-    val description: String
-    val inputKeys: List<String>
-    val outputKeys: List<String>
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-    fun execute(input: Map<String, Any?>): Map<String, Any?>
+class EnrichAssetMetadataStep : WorkflowDefinitionStep {
+    override val id: String = "enrich-asset-metadata"
+    override val description: String = "Derive asset metadata for downstream consumers."
+    override val inputKeys: List<String> = listOf("deviceId", "sensorType")
+    override val outputKeys: List<String> = listOf("assetKey")
 
-    fun toPayload(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "description" to description,
-            "inputKeys" to inputKeys,
-            "outputKeys" to outputKeys
-        )
-}
-
-interface WorkflowDefinitionSpec {
-    val id: String
-    val description: String
-    val engineWorkflowType: String
-    val steps: List<WorkflowDefinitionStep>
-
-    fun expand(payload: Map<String, Any?>): Map<String, Any?>
-
-    fun executeSteps(initialContext: Map<String, Any?>): Map<String, Any?> =
-        steps.fold(initialContext.toMutableMap()) { context, step ->
-            context.apply {
-                putAll(step.execute(context))
-            }
-        }
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
+        val deviceId = input["deviceId"]?.toString() ?: "unknown-device"
+        val sensorType = input["sensorType"]?.toString() ?: "generic-rtl433-sensor"
+        return mapOf("assetKey" to "$sensorType:$deviceId")
+    }
 }

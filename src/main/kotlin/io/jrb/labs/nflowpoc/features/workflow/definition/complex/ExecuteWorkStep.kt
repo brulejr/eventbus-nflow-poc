@@ -19,37 +19,16 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.complex
 
-interface WorkflowDefinitionStep {
-    val id: String
-    val description: String
-    val inputKeys: List<String>
-    val outputKeys: List<String>
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-    fun execute(input: Map<String, Any?>): Map<String, Any?>
+class ExecuteWorkStep : WorkflowDefinitionStep {
+    override val id: String = "execute-work"
+    override val description: String = "Run the logical unit of work represented by the parameters."
+    override val inputKeys: List<String> = listOf("parameters")
+    override val outputKeys: List<String> = listOf("executionStatus")
 
-    fun toPayload(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "description" to description,
-            "inputKeys" to inputKeys,
-            "outputKeys" to outputKeys
-        )
-}
-
-interface WorkflowDefinitionSpec {
-    val id: String
-    val description: String
-    val engineWorkflowType: String
-    val steps: List<WorkflowDefinitionStep>
-
-    fun expand(payload: Map<String, Any?>): Map<String, Any?>
-
-    fun executeSteps(initialContext: Map<String, Any?>): Map<String, Any?> =
-        steps.fold(initialContext.toMutableMap()) { context, step ->
-            context.apply {
-                putAll(step.execute(context))
-            }
-        }
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
+        mapOf("executionStatus" to "completed")
 }

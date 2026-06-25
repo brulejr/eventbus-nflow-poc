@@ -19,39 +19,16 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.complex
 
-import org.springframework.stereotype.Component
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-@Component
 class ValidateRequestStep : WorkflowDefinitionStep {
     override val id: String = "validate-request"
     override val description: String = "Validate that the request can be accepted by the workflow definition."
     override val inputKeys: List<String> = listOf("parameters")
     override val outputKeys: List<String> = listOf("validationStatus")
-}
 
-@Component
-class PrepareExecutionStep : WorkflowDefinitionStep {
-    override val id: String = "prepare-execution"
-    override val description: String = "Prepare the execution context and derive the work plan."
-    override val inputKeys: List<String> = listOf("parameters")
-    override val outputKeys: List<String> = listOf("preparationStatus")
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
+        mapOf("validationStatus" to "accepted")
 }
-
-@Component
-class ExecuteWorkStep : WorkflowDefinitionStep {
-    override val id: String = "execute-work"
-    override val description: String = "Run the logical unit of work represented by the parameters."
-    override val inputKeys: List<String> = listOf("parameters")
-    override val outputKeys: List<String> = listOf("executionStatus")
-}
-
-@Component
-class CollectOutputStep : WorkflowDefinitionStep {
-    override val id: String = "collect-output"
-    override val description: String = "Collect the final workflow output and make it available to ticket callers."
-    override val inputKeys: List<String> = listOf("output")
-    override val outputKeys: List<String> = listOf("status", "parameters")
-}
-

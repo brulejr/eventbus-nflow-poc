@@ -19,37 +19,19 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.simple
 
-interface WorkflowDefinitionStep {
-    val id: String
-    val description: String
-    val inputKeys: List<String>
-    val outputKeys: List<String>
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
-    fun execute(input: Map<String, Any?>): Map<String, Any?>
+@Configuration
+class SimpleWorkflowConfiguration {
 
-    fun toPayload(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "description" to description,
-            "inputKeys" to inputKeys,
-            "outputKeys" to outputKeys
-        )
-}
+    @Bean
+    fun simpleWorkflowDefinition(echoInputStep: EchoInputStep): SimpleWorkflowDefinition =
+        SimpleWorkflowDefinition(echoInputStep)
 
-interface WorkflowDefinitionSpec {
-    val id: String
-    val description: String
-    val engineWorkflowType: String
-    val steps: List<WorkflowDefinitionStep>
-
-    fun expand(payload: Map<String, Any?>): Map<String, Any?>
-
-    fun executeSteps(initialContext: Map<String, Any?>): Map<String, Any?> =
-        steps.fold(initialContext.toMutableMap()) { context, step ->
-            context.apply {
-                putAll(step.execute(context))
-            }
-        }
+    @Bean
+    fun echoInputStep(): EchoInputStep =
+        EchoInputStep()
 }

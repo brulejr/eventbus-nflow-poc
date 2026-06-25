@@ -19,12 +19,12 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.simple
 
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionSpec
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
-import org.springframework.stereotype.Component
 
-@Component
 class SimpleWorkflowDefinition(
     echoInputStep: EchoInputStep
 ) : WorkflowDefinitionSpec {
@@ -35,12 +35,13 @@ class SimpleWorkflowDefinition(
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
         val parameters = parameters(payload)
+        val context = executeSteps(mapOf("parameters" to parameters))
         return mapOf(
             "name" to id,
             "parameters" to parameters,
             "steps" to steps.map { it.id },
             "definitionSteps" to steps.map { it.toPayload() },
-            "output" to (payload["output"] ?: mapOf("accepted" to true, "echo" to parameters))
+            "output" to (payload["output"] ?: context.filterKeys { it in outputKeys })
         )
     }
 
@@ -53,5 +54,6 @@ class SimpleWorkflowDefinition(
 
     companion object {
         private val RESERVED_KEYS = setOf("definition", "workflowDefinition", "name", "output", "steps", "definitionSteps")
+        private val outputKeys = setOf("accepted", "echo")
     }
 }

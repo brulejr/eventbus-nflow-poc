@@ -19,12 +19,12 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition
+package io.jrb.labs.nflowpoc.features.workflow.definition.complex
 
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionSpec
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
-import org.springframework.stereotype.Component
 
-@Component
 class ComplexWorkflowDefinition(
     validateRequestStep: ValidateRequestStep,
     prepareExecutionStep: PrepareExecutionStep,
@@ -43,12 +43,13 @@ class ComplexWorkflowDefinition(
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
         val parameters = parameters(payload)
+        val context = executeSteps(mapOf("parameters" to parameters))
         return mapOf(
             "name" to id,
             "parameters" to parameters,
             "steps" to stepIds(payload),
             "definitionSteps" to definitionSteps(payload),
-            "output" to (payload["output"] ?: defaultOutput(parameters)),
+            "output" to (payload["output"] ?: context.filterKeys { it in outputKeys }),
             "failValidation" to (payload["failValidation"] == true),
             "failPreparation" to (payload["failPreparation"] == true),
             "failExecution" to (payload["failExecution"] == true)
@@ -63,12 +64,6 @@ class ComplexWorkflowDefinition(
 
     private fun definitionSteps(payload: Map<String, Any?>): List<Map<String, Any?>> =
         mapListValue(payload["definitionSteps"]).ifEmpty { steps.map { it.toPayload() } }
-
-    private fun defaultOutput(parameters: Map<String, Any?>): Map<String, Any?> =
-        mapOf(
-            "status" to "accepted",
-            "parameters" to parameters
-        )
 
     @Suppress("UNCHECKED_CAST")
     private fun mapValue(value: Any?): Map<String, Any?>? =
@@ -95,5 +90,6 @@ class ComplexWorkflowDefinition(
             "failPreparation",
             "failExecution"
         )
+        private val outputKeys = setOf("status", "parameters")
     }
 }

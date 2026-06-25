@@ -43,14 +43,15 @@ src/main/kotlin/io/jrb/labs/nflowpoc/features/workflow/service/execution
 Those classes are plain Kotlin/Spring services. They do not extend nFlow types and do not import
 `StateExecution`, `WorkflowDefinition`, `WorkflowState`, or `NextAction`.
 
-Named reusable workflow definitions live in a separate layer:
+Named reusable workflow definitions live in separate child packages under:
 
 ```text
 src/main/kotlin/io/jrb/labs/nflowpoc/features/workflow/definition
 ```
 
 These classes describe reusable starter definitions and expand caller input into the generic command
-shape expected by the execution engines.
+shape expected by the execution engines. The definition classes orchestrate ordered domain steps; the
+step-specific transformation logic lives in separate step classes.
 
 ## State variables passed to nFlow
 
@@ -113,8 +114,22 @@ The three starter definitions are code, not nFlow state graphs:
 The rtl433 starter's domain mapping belongs here. nFlow and the inbound execution engine still only see a
 generic named command with parameters, output, and routing metadata.
 
-Each starter definition is wired with separate Spring step beans. These domain-level steps are distinct
-from the generic nFlow shell states.
+Each starter definition and its step classes live in a workflow-specific child package:
+
+- `definition.simple`
+- `definition.complex`
+- `definition.rtl433`
+
+Each package has its own Spring configuration class for that workflow definition and its step beans:
+`SimpleWorkflowConfiguration`, `ComplexWorkflowConfiguration`, and
+`Rtl433DataPipelineWorkflowConfiguration`. Concrete workflow definitions are plain Kotlin classes and
+are not registered through stereotype annotations. These domain-level steps are distinct from the
+generic nFlow shell states.
+
+Every starter step implements `WorkflowDefinitionStep.execute(input): Map<String, Any?>`. The step's
+declared `inputKeys` document the context keys it reads, and `outputKeys` document the keys it writes.
+The definition runs the ordered step chain and uses the resulting context to build the expanded generic
+command payload.
 
 `simple`:
 
@@ -137,7 +152,8 @@ from the generic nFlow shell states.
 - `RouteTelemetryStep`: `route-telemetry`
 
 Expanded commands include both `steps`, the ordered step IDs, and `definitionSteps`, the step metadata
-with descriptions plus declared input and output keys.
+with descriptions plus declared input and output keys. The execution engines still treat those values as
+generic result metadata; they do not call or interpret the domain step beans.
 
 ## nFlow Definitions And Execution Engines
 
