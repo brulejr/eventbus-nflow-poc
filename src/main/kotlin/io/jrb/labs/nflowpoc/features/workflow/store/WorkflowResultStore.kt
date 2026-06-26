@@ -26,7 +26,6 @@ package io.jrb.labs.nflowpoc.features.workflow.store
 
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunResult
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunStatus
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
 import java.time.Duration
@@ -123,41 +122,4 @@ class WorkflowResultStore {
 
     private fun WorkflowRunStatus.isTerminal(): Boolean =
         this == WorkflowRunStatus.COMPLETED || this == WorkflowRunStatus.FAILED || this == WorkflowRunStatus.TIMED_OUT
-}
-
-private data class MutableWorkflowRecord(
-    val ticketId: String,
-    val workflowType: String,
-    val correlationId: String,
-    val source: WorkflowSource,
-    var engineInstanceId: String?,
-    var status: WorkflowRunStatus,
-    var result: Map<String, Any?>?,
-    var error: String?,
-    val createdAt: Instant,
-    var updatedAt: Instant
-) {
-    fun toTicket() = WorkflowTicket(
-        ticketId = ticketId,
-        workflowType = workflowType,
-        correlationId = correlationId,
-        source = source,
-        engineInstanceId = engineInstanceId,
-        status = status,
-        createdAt = createdAt,
-        updatedAt = updatedAt
-    )
-
-    fun toResult() = WorkflowRunResult(
-        ticketId = ticketId,
-        workflowType = workflowType,
-        correlationId = correlationId,
-        source = source,
-        engineInstanceId = engineInstanceId,
-        status = status,
-        result = result,
-        error = error,
-        createdAt = createdAt,
-        updatedAt = updatedAt
-    )
 }

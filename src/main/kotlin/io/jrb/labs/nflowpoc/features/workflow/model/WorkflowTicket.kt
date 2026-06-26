@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
+ * Copyright (c) 2026 Jon Brule
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,17 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.service.nflow
+package io.jrb.labs.nflowpoc.features.workflow.model
 
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Profile
+import java.time.Instant
 
-/**
- * Enables nFlow when the `nflow` Spring profile is active.
- *
- * The configuration class is imported by class name through an ImportSelector instead of
- * directly importing the nFlow type. This keeps the project compile-safe if the nFlow Spring
- * configuration class moves between versions, while still making this file an actual nFlow
- * integration point rather than an empty placeholder.
- */
-@Configuration
-@Profile("nflow")
-@Import(NflowConfigurationImportSelector::class)
-class NflowConfig
+data class WorkflowTicket(
+    val ticketId: String,
+    val workflowType: String,
+    val correlationId: String,
+    val source: WorkflowSource,
+    val engineInstanceId: String?,
+    val status: WorkflowRunStatus,
+    val createdAt: Instant,
+    val updatedAt: Instant
+)

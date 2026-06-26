@@ -22,60 +22,24 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.model
+package io.jrb.labs.nflowpoc.api
 
-import java.time.Instant
-import java.util.UUID
+import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
 
-enum class WorkflowSource {
-    REST_ASYNC,
-    REST_BLOCKING,
-    MQTT,
-    RABBITMQ,
-    IN_MEMORY
-}
-
-enum class WorkflowRunStatus {
-    RECEIVED,
-    STARTED,
-    RUNNING,
-    COMPLETED,
-    FAILED,
-    TIMED_OUT
-}
-
-data class WorkflowStartCommand(
-    val workflowType: String,
-    val correlationId: String = UUID.randomUUID().toString(),
-    val source: WorkflowSource,
-    val payload: Map<String, Any?> = emptyMap(),
-    val receivedAt: Instant = Instant.now()
-)
-
-data class WorkflowEngineHandle(
-    val engineInstanceId: String
-)
-
-data class WorkflowTicket(
+data class WorkflowTicketResponse(
     val ticketId: String,
     val workflowType: String,
     val correlationId: String,
-    val source: WorkflowSource,
     val engineInstanceId: String?,
-    val status: WorkflowRunStatus,
-    val createdAt: Instant,
-    val updatedAt: Instant
+    val status: String,
+    val statusUrl: String
 )
 
-data class WorkflowRunResult(
-    val ticketId: String,
-    val correlationId: String,
-    val workflowType: String,
-    val source: WorkflowSource,
-    val engineInstanceId: String?,
-    val status: WorkflowRunStatus,
-    val result: Map<String, Any?>? = null,
-    val error: String? = null,
-    val createdAt: Instant,
-    val updatedAt: Instant
+fun WorkflowTicket.toResponse() = WorkflowTicketResponse(
+    ticketId = ticketId,
+    workflowType = workflowType,
+    correlationId = correlationId,
+    engineInstanceId = engineInstanceId,
+    status = status.name,
+    statusUrl = "/api/workflows/tickets/$ticketId"
 )

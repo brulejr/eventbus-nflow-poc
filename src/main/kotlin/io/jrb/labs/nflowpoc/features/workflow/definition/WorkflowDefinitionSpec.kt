@@ -21,23 +21,6 @@
 
 package io.jrb.labs.nflowpoc.features.workflow.definition
 
-interface WorkflowDefinitionStep {
-    val id: String
-    val description: String
-    val inputKeys: List<String>
-    val outputKeys: List<String>
-
-    fun execute(input: Map<String, Any?>): Map<String, Any?>
-
-    fun toPayload(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "description" to description,
-            "inputKeys" to inputKeys,
-            "outputKeys" to outputKeys
-        )
-}
-
 interface WorkflowDefinitionSpec {
     val id: String
     val description: String

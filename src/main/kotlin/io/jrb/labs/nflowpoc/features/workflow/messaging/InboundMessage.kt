@@ -33,8 +33,3 @@ data class InboundMessage(
     val payload: Map<String, Any?>,
     val rawBody: String
 )
-
-interface MessageIngressAdapter {
-    val name: String
-    val source: WorkflowSource
-}

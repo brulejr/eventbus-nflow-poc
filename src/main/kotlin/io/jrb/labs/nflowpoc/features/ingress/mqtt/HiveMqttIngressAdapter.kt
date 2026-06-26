@@ -34,10 +34,7 @@ import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -193,9 +190,3 @@ class HiveMqttIngressAdapter(
         scheduler.shutdownNow()
     }
 }
-
-data class MqttWorkflowMessage(
-    val workflowType: String,
-    val correlationId: String? = null,
-    val payload: Map<String, Any?> = emptyMap()
-)

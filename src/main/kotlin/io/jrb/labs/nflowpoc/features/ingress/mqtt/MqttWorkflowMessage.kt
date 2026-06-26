@@ -22,21 +22,10 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.service.nflow
+package io.jrb.labs.nflowpoc.features.ingress.mqtt
 
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Profile
-
-/**
- * Enables nFlow when the `nflow` Spring profile is active.
- *
- * The configuration class is imported by class name through an ImportSelector instead of
- * directly importing the nFlow type. This keeps the project compile-safe if the nFlow Spring
- * configuration class moves between versions, while still making this file an actual nFlow
- * integration point rather than an empty placeholder.
- */
-@Configuration
-@Profile("nflow")
-@Import(NflowConfigurationImportSelector::class)
-class NflowConfig
+data class MqttWorkflowMessage(
+    val workflowType: String,
+    val correlationId: String? = null,
+    val payload: Map<String, Any?> = emptyMap()
+)

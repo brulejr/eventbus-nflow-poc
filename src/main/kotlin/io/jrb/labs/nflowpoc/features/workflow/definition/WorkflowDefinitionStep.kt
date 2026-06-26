@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
+ * Copyright (c) 2026 Jon Brule
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -9,9 +9,6 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -22,21 +19,21 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.service.nflow
+package io.jrb.labs.nflowpoc.features.workflow.definition
 
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Profile
+interface WorkflowDefinitionStep {
+    val id: String
+    val description: String
+    val inputKeys: List<String>
+    val outputKeys: List<String>
 
-/**
- * Enables nFlow when the `nflow` Spring profile is active.
- *
- * The configuration class is imported by class name through an ImportSelector instead of
- * directly importing the nFlow type. This keeps the project compile-safe if the nFlow Spring
- * configuration class moves between versions, while still making this file an actual nFlow
- * integration point rather than an empty placeholder.
- */
-@Configuration
-@Profile("nflow")
-@Import(NflowConfigurationImportSelector::class)
-class NflowConfig
+    fun execute(input: Map<String, Any?>): Map<String, Any?>
+
+    fun toPayload(): Map<String, Any?> =
+        mapOf(
+            "id" to id,
+            "description" to description,
+            "inputKeys" to inputKeys,
+            "outputKeys" to outputKeys
+        )
+}

@@ -22,35 +22,15 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.api
+package io.jrb.labs.nflowpoc.features.workflow.model
 
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowRunResult
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTicket
+import java.time.Instant
+import java.util.UUID
 
-data class WorkflowRequest(
-    val correlationId: String? = null,
-    val workflowType: String? = null,
-    val payload: Map<String, Any?> = emptyMap()
-)
-
-data class WorkflowTicketResponse(
-    val ticketId: String,
+data class WorkflowStartCommand(
     val workflowType: String,
-    val correlationId: String,
-    val engineInstanceId: String?,
-    val status: String,
-    val statusUrl: String
-)
-
-fun WorkflowTicket.toResponse() = WorkflowTicketResponse(
-    ticketId = ticketId,
-    workflowType = workflowType,
-    correlationId = correlationId,
-    engineInstanceId = engineInstanceId,
-    status = status.name,
-    statusUrl = "/api/workflows/tickets/$ticketId"
-)
-
-data class WorkflowSummaryResponse(
-    val tickets: List<WorkflowRunResult>
+    val correlationId: String = UUID.randomUUID().toString(),
+    val source: WorkflowSource,
+    val payload: Map<String, Any?> = emptyMap(),
+    val receivedAt: Instant = Instant.now()
 )
