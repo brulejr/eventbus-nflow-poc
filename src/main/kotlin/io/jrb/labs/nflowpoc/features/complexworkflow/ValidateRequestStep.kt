@@ -19,19 +19,18 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.simple
+package io.jrb.labs.nflowpoc.features.complexworkflow
 
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-@Configuration
-class SimpleWorkflowConfiguration {
+class ValidateRequestStep(
+    private val datafill: ComplexWorkflowDatafill
+) : WorkflowDefinitionStep {
+    override val id: String = "validate-request"
+    override val description: String = "Validate that the request can be accepted by the workflow definition."
+    override val inputKeys: List<String> = listOf("parameters")
+    override val outputKeys: List<String> = listOf("validationStatus")
 
-    @Bean
-    fun simpleWorkflowDefinition(echoInputStep: EchoInputStep): SimpleWorkflowDefinition =
-        SimpleWorkflowDefinition(echoInputStep)
-
-    @Bean
-    fun echoInputStep(): EchoInputStep =
-        EchoInputStep()
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
+        mapOf("validationStatus" to "accepted")
 }

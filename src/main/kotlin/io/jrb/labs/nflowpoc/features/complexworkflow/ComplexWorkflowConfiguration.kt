@@ -19,22 +19,33 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.complex
+package io.jrb.labs.nflowpoc.features.complexworkflow
 
+import io.jrb.labs.nflowpoc.features.FeatureDescriptors.CONFIG_PREFIX_WORKFLOW_DEFINITION_COMPLEX
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@EnableConfigurationProperties(ComplexWorkflowDatafill::class)
+@ConditionalOnProperty(prefix = CONFIG_PREFIX_WORKFLOW_DEFINITION_COMPLEX, name = ["enabled"], havingValue = "true", matchIfMissing = true)
 class ComplexWorkflowConfiguration {
 
     @Bean
+    fun complexWorkflowInfoContributor(datafill: ComplexWorkflowDatafill): ComplexWorkflowInfoContributor =
+        ComplexWorkflowInfoContributor(datafill)
+
+    @Bean
     fun complexWorkflowDefinition(
+        datafill: ComplexWorkflowDatafill,
         validateRequestStep: ValidateRequestStep,
         prepareExecutionStep: PrepareExecutionStep,
         executeWorkStep: ExecuteWorkStep,
         collectOutputStep: CollectOutputStep
     ): ComplexWorkflowDefinition =
         ComplexWorkflowDefinition(
+            datafill = datafill,
             validateRequestStep = validateRequestStep,
             prepareExecutionStep = prepareExecutionStep,
             executeWorkStep = executeWorkStep,
@@ -42,18 +53,18 @@ class ComplexWorkflowConfiguration {
         )
 
     @Bean
-    fun validateRequestStep(): ValidateRequestStep =
-        ValidateRequestStep()
+    fun validateRequestStep(datafill: ComplexWorkflowDatafill): ValidateRequestStep =
+        ValidateRequestStep(datafill)
 
     @Bean
-    fun prepareExecutionStep(): PrepareExecutionStep =
-        PrepareExecutionStep()
+    fun prepareExecutionStep(datafill: ComplexWorkflowDatafill): PrepareExecutionStep =
+        PrepareExecutionStep(datafill)
 
     @Bean
-    fun executeWorkStep(): ExecuteWorkStep =
-        ExecuteWorkStep()
+    fun executeWorkStep(datafill: ComplexWorkflowDatafill): ExecuteWorkStep =
+        ExecuteWorkStep(datafill)
 
     @Bean
-    fun collectOutputStep(): CollectOutputStep =
-        CollectOutputStep()
+    fun collectOutputStep(datafill: ComplexWorkflowDatafill): CollectOutputStep =
+        CollectOutputStep(datafill)
 }

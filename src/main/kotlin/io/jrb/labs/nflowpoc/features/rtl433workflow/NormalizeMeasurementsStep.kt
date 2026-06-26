@@ -19,11 +19,13 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
+package io.jrb.labs.nflowpoc.features.rtl433workflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-class NormalizeMeasurementsStep : WorkflowDefinitionStep {
+class NormalizeMeasurementsStep(
+    private val datafill: Rtl433WorkflowDatafill
+) : WorkflowDefinitionStep {
     override val id: String = "normalize-measurements"
     override val description: String = "Normalize rtl_433 measurement keys into value/unit structures."
     override val inputKeys: List<String> = listOf("raw.temperature_C", "raw.humidity", "raw.battery_ok")

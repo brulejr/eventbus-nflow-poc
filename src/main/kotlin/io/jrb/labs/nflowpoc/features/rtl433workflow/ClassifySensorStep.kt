@@ -19,11 +19,13 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
+package io.jrb.labs.nflowpoc.features.rtl433workflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-class ClassifySensorStep : WorkflowDefinitionStep {
+class ClassifySensorStep(
+    private val datafill: Rtl433WorkflowDatafill
+) : WorkflowDefinitionStep {
     override val id: String = "classify-sensor"
     override val description: String = "Classify the sensor type from the decoded device model."
     override val inputKeys: List<String> = listOf("raw.model", "raw.device")

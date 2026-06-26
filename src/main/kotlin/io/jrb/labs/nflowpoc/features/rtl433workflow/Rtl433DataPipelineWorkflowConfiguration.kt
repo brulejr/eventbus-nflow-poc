@@ -19,16 +19,26 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
+package io.jrb.labs.nflowpoc.features.rtl433workflow
 
+import io.jrb.labs.nflowpoc.features.FeatureDescriptors.CONFIG_PREFIX_WORKFLOW_DEFINITION_RTL433
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@EnableConfigurationProperties(Rtl433WorkflowDatafill::class)
+@ConditionalOnProperty(prefix = CONFIG_PREFIX_WORKFLOW_DEFINITION_RTL433, name = ["enabled"], havingValue = "true", matchIfMissing = true)
 class Rtl433DataPipelineWorkflowConfiguration {
 
     @Bean
+    fun rtl433WorkflowInfoContributor(datafill: Rtl433WorkflowDatafill): Rtl433WorkflowInfoContributor =
+        Rtl433WorkflowInfoContributor(datafill)
+
+    @Bean
     fun rtl433DataPipelineWorkflowDefinition(
+        datafill: Rtl433WorkflowDatafill,
         ingestRawMessageStep: IngestRawMessageStep,
         decodeDevicePayloadStep: DecodeDevicePayloadStep,
         normalizeMeasurementsStep: NormalizeMeasurementsStep,
@@ -37,6 +47,7 @@ class Rtl433DataPipelineWorkflowConfiguration {
         routeTelemetryStep: RouteTelemetryStep
     ): Rtl433DataPipelineWorkflowDefinition =
         Rtl433DataPipelineWorkflowDefinition(
+            datafill = datafill,
             ingestRawMessageStep = ingestRawMessageStep,
             decodeDevicePayloadStep = decodeDevicePayloadStep,
             normalizeMeasurementsStep = normalizeMeasurementsStep,
@@ -46,26 +57,26 @@ class Rtl433DataPipelineWorkflowConfiguration {
         )
 
     @Bean
-    fun ingestRawMessageStep(): IngestRawMessageStep =
-        IngestRawMessageStep()
+    fun ingestRawMessageStep(datafill: Rtl433WorkflowDatafill): IngestRawMessageStep =
+        IngestRawMessageStep(datafill)
 
     @Bean
-    fun decodeDevicePayloadStep(): DecodeDevicePayloadStep =
-        DecodeDevicePayloadStep()
+    fun decodeDevicePayloadStep(datafill: Rtl433WorkflowDatafill): DecodeDevicePayloadStep =
+        DecodeDevicePayloadStep(datafill)
 
     @Bean
-    fun normalizeMeasurementsStep(): NormalizeMeasurementsStep =
-        NormalizeMeasurementsStep()
+    fun normalizeMeasurementsStep(datafill: Rtl433WorkflowDatafill): NormalizeMeasurementsStep =
+        NormalizeMeasurementsStep(datafill)
 
     @Bean
-    fun classifySensorStep(): ClassifySensorStep =
-        ClassifySensorStep()
+    fun classifySensorStep(datafill: Rtl433WorkflowDatafill): ClassifySensorStep =
+        ClassifySensorStep(datafill)
 
     @Bean
-    fun enrichAssetMetadataStep(): EnrichAssetMetadataStep =
-        EnrichAssetMetadataStep()
+    fun enrichAssetMetadataStep(datafill: Rtl433WorkflowDatafill): EnrichAssetMetadataStep =
+        EnrichAssetMetadataStep(datafill)
 
     @Bean
-    fun routeTelemetryStep(): RouteTelemetryStep =
-        RouteTelemetryStep()
+    fun routeTelemetryStep(datafill: Rtl433WorkflowDatafill): RouteTelemetryStep =
+        RouteTelemetryStep(datafill)
 }

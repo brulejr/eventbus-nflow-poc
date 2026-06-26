@@ -19,22 +19,18 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
+package io.jrb.labs.nflowpoc.features.complexworkflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-class RouteTelemetryStep : WorkflowDefinitionStep {
-    override val id: String = "route-telemetry"
-    override val description: String = "Compute the routing key and route destination for normalized telemetry."
-    override val inputKeys: List<String> = listOf("deviceId", "sensorType")
-    override val outputKeys: List<String> = listOf("routingKey", "routeDestination")
+class PrepareExecutionStep(
+    private val datafill: ComplexWorkflowDatafill
+) : WorkflowDefinitionStep {
+    override val id: String = "prepare-execution"
+    override val description: String = "Prepare the execution context and derive the work plan."
+    override val inputKeys: List<String> = listOf("parameters")
+    override val outputKeys: List<String> = listOf("preparationStatus")
 
-    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
-        val deviceId = input["deviceId"]?.toString() ?: "unknown-device"
-        val sensorType = input["sensorType"]?.toString() ?: "generic-rtl433-sensor"
-        return mapOf(
-            "routingKey" to "rtl433.$sensorType.$deviceId",
-            "routeDestination" to "telemetry.normalized"
-        )
-    }
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
+        mapOf("preparationStatus" to "ready")
 }

@@ -19,13 +19,14 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.complex
+package io.jrb.labs.nflowpoc.features.complexworkflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionSpec
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 
 class ComplexWorkflowDefinition(
+    datafill: ComplexWorkflowDatafill,
     validateRequestStep: ValidateRequestStep,
     prepareExecutionStep: PrepareExecutionStep,
     executeWorkStep: ExecuteWorkStep,

@@ -32,6 +32,9 @@ object FeatureDescriptors {
     const val CONFIG_PREFIX_WORKFLOW_ENGINE = "workflow.engine"
     const val CONFIG_PREFIX_WORKFLOW_INGRESS_MQTT = "workflow.ingress.mqtt"
     const val CONFIG_PREFIX_WORKFLOW_INGRESS_RABBIT = "workflow.ingress.rabbit"
+    const val CONFIG_PREFIX_WORKFLOW_DEFINITION_SIMPLE = "workflow.definition.simple"
+    const val CONFIG_PREFIX_WORKFLOW_DEFINITION_COMPLEX = "workflow.definition.complex"
+    const val CONFIG_PREFIX_WORKFLOW_DEFINITION_RTL433 = "workflow.definition.rtl433"
 
     val WORKFLOW_ENGINE = FeatureDescriptor(
         application = APP_NAME,
@@ -56,4 +59,29 @@ object FeatureDescriptors {
         description = "Provides RabbitMQ access to the workflow engine",
         configPrefix = CONFIG_PREFIX_WORKFLOW_INGRESS_RABBIT
     )
+
+    val WORKFLOW_DEFINITION_SIMPLE = FeatureDescriptor(
+        application = APP_NAME,
+        featureId = "workflow-definition-simple",
+        displayName = "Simple Workflow Definition",
+        description = "Provides a simple workflow definition for the workflow engine",
+        configPrefix = CONFIG_PREFIX_WORKFLOW_DEFINITION_SIMPLE
+    )
+
+    val WORKFLOW_DEFINITION_COMPLEX = FeatureDescriptor(
+        application = APP_NAME,
+        featureId = "workflow-definition-complex",
+        displayName = "Complex Workflow Definition",
+        description = "Provides a complex workflow definition for the workflow engine",
+        configPrefix = CONFIG_PREFIX_WORKFLOW_DEFINITION_COMPLEX
+    )
+
+    val WORKFLOW_DEFINITION_RTL433 = FeatureDescriptor(
+        application = APP_NAME,
+        featureId = "workflow-definition-rtl433",
+        displayName = "rtl433 Data Pipeline Workflow Definition",
+        description = "Provides an rtl433 data pipeline workflow definition for the workflow engine",
+        configPrefix = CONFIG_PREFIX_WORKFLOW_DEFINITION_RTL433
+    )
+
 }

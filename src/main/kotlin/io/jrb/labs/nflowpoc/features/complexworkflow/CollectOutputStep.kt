@@ -19,16 +19,27 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.complex
+package io.jrb.labs.nflowpoc.features.complexworkflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-class PrepareExecutionStep : WorkflowDefinitionStep {
-    override val id: String = "prepare-execution"
-    override val description: String = "Prepare the execution context and derive the work plan."
-    override val inputKeys: List<String> = listOf("parameters")
-    override val outputKeys: List<String> = listOf("preparationStatus")
+class CollectOutputStep(
+    private val datafill: ComplexWorkflowDatafill
+) : WorkflowDefinitionStep {
+    override val id: String = "collect-output"
+    override val description: String = "Collect the final workflow output and make it available to ticket callers."
+    override val inputKeys: List<String> = listOf("output")
+    override val outputKeys: List<String> = listOf("status", "parameters")
 
-    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
-        mapOf("preparationStatus" to "ready")
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
+        val parameters = mapValue(input["parameters"]) ?: emptyMap()
+        return mapOf(
+            "status" to "accepted",
+            "parameters" to parameters
+        )
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun mapValue(value: Any?): Map<String, Any?>? =
+        value as? Map<String, Any?>
 }

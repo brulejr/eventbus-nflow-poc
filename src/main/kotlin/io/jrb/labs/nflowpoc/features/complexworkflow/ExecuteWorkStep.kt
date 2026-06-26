@@ -19,19 +19,18 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
+package io.jrb.labs.nflowpoc.features.complexworkflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-class EnrichAssetMetadataStep : WorkflowDefinitionStep {
-    override val id: String = "enrich-asset-metadata"
-    override val description: String = "Derive asset metadata for downstream consumers."
-    override val inputKeys: List<String> = listOf("deviceId", "sensorType")
-    override val outputKeys: List<String> = listOf("assetKey")
+class ExecuteWorkStep(
+    private val datafill: ComplexWorkflowDatafill
+) : WorkflowDefinitionStep {
+    override val id: String = "execute-work"
+    override val description: String = "Run the logical unit of work represented by the parameters."
+    override val inputKeys: List<String> = listOf("parameters")
+    override val outputKeys: List<String> = listOf("executionStatus")
 
-    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
-        val deviceId = input["deviceId"]?.toString() ?: "unknown-device"
-        val sensorType = input["sensorType"]?.toString() ?: "generic-rtl433-sensor"
-        return mapOf("assetKey" to "$sensorType:$deviceId")
-    }
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
+        mapOf("executionStatus" to "completed")
 }

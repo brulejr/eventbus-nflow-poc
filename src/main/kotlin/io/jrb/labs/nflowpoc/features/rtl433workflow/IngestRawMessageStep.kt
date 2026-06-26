@@ -19,25 +19,20 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.rtl433
+package io.jrb.labs.nflowpoc.features.rtl433workflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-class DecodeDevicePayloadStep : WorkflowDefinitionStep {
-    override val id: String = "decode-device-payload"
-    override val description: String = "Extract device identity fields such as model, id, and channel."
-    override val inputKeys: List<String> = listOf("raw.model", "raw.id", "raw.channel")
-    override val outputKeys: List<String> = listOf("deviceId")
+class IngestRawMessageStep(
+    private val datafill: Rtl433WorkflowDatafill
+) : WorkflowDefinitionStep {
+    override val id: String = "ingest-raw-message"
+    override val description: String = "Accept the raw rtl_433 JSON payload from REST, MQTT, or RabbitMQ ingress."
+    override val inputKeys: List<String> = listOf("raw")
+    override val outputKeys: List<String> = listOf("raw")
 
-    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
-        val raw = mapValue(input["raw"]) ?: emptyMap()
-        return mapOf("deviceId" to deviceId(raw))
-    }
-
-    private fun deviceId(raw: Map<String, Any?>): String =
-        raw["id"]?.toString()
-            ?: raw["deviceId"]?.toString()
-            ?: "unknown-device"
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
+        mapOf("raw" to (mapValue(input["raw"]) ?: emptyMap()))
 
     @Suppress("UNCHECKED_CAST")
     private fun mapValue(value: Any?): Map<String, Any?>? =

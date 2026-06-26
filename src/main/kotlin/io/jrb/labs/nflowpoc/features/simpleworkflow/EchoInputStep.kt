@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -9,6 +9,9 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,16 +22,27 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.complex
+package io.jrb.labs.nflowpoc.features.simpleworkflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 
-class ExecuteWorkStep : WorkflowDefinitionStep {
-    override val id: String = "execute-work"
-    override val description: String = "Run the logical unit of work represented by the parameters."
+class EchoInputStep(
+    private val datafill: SimpleWorkflowDatafill
+) : WorkflowDefinitionStep {
+    override val id: String = "echo-input"
+    override val description: String = "Accept the caller parameters and echo them in the workflow output."
     override val inputKeys: List<String> = listOf("parameters")
-    override val outputKeys: List<String> = listOf("executionStatus")
+    override val outputKeys: List<String> = listOf("accepted", "echo")
 
-    override fun execute(input: Map<String, Any?>): Map<String, Any?> =
-        mapOf("executionStatus" to "completed")
+    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
+        val parameters = mapValue(input["parameters"]) ?: emptyMap()
+        return mapOf(
+            "accepted" to true,
+            "echo" to parameters
+        )
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun mapValue(value: Any?): Map<String, Any?>? =
+        value as? Map<String, Any?>
 }

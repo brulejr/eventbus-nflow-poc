@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -9,6 +9,9 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,25 +22,19 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.simple
+package io.jrb.labs.nflowpoc.features.complexworkflow
 
-import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
+import io.jrb.labs.commons.actuator.FeatureInfoContributor
+import io.jrb.labs.nflowpoc.features.FeatureDescriptors.WORKFLOW_DEFINITION_COMPLEX
 
-class EchoInputStep : WorkflowDefinitionStep {
-    override val id: String = "echo-input"
-    override val description: String = "Accept the caller parameters and echo them in the workflow output."
-    override val inputKeys: List<String> = listOf("parameters")
-    override val outputKeys: List<String> = listOf("accepted", "echo")
+class ComplexWorkflowInfoContributor(
+    private val datafill: ComplexWorkflowDatafill
+) : FeatureInfoContributor {
 
-    override fun execute(input: Map<String, Any?>): Map<String, Any?> {
-        val parameters = mapValue(input["parameters"]) ?: emptyMap()
-        return mapOf(
-            "accepted" to true,
-            "echo" to parameters
-        )
-    }
+    override val key: String = WORKFLOW_DEFINITION_COMPLEX.featureId
 
-    @Suppress("UNCHECKED_CAST")
-    private fun mapValue(value: Any?): Map<String, Any?>? =
-        value as? Map<String, Any?>
+    override fun info(): Map<String, Any?> = mapOf(
+        "enabled" to datafill.enabled
+    )
+
 }

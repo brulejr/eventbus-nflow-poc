@@ -35,3 +35,11 @@ poc:
       exchange: poc.workflow
       queue: poc.workflow.start
       routing-key: workflow.start
+
+workflow.definition:
+  simple:
+    enabled: true
+  complex:
+    enabled: true
+  rtl433:
+    enabled: true

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule
+ * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -9,6 +9,9 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,13 +22,14 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.definition.simple
+package io.jrb.labs.nflowpoc.features.simpleworkflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionSpec
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 
 class SimpleWorkflowDefinition(
+    datafill: SimpleWorkflowDatafill,
     echoInputStep: EchoInputStep
 ) : WorkflowDefinitionSpec {
     override val id: String = "simple"

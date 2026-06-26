@@ -43,15 +43,16 @@ src/main/kotlin/io/jrb/labs/nflowpoc/features/workflow/service/execution
 Those classes are plain Kotlin/Spring services. They do not extend nFlow types and do not import
 `StateExecution`, `WorkflowDefinition`, `WorkflowState`, or `NextAction`.
 
-Named reusable workflow definitions live in separate child packages under:
+Named reusable workflow definitions live in feature packages. The shared resolver and contracts remain
+under:
 
 ```text
 src/main/kotlin/io/jrb/labs/nflowpoc/features/workflow/definition
 ```
 
-These classes describe reusable starter definitions and expand caller input into the generic command
-shape expected by the execution engines. The definition classes orchestrate ordered domain steps; the
-step-specific transformation logic lives in separate step classes.
+The feature packages describe reusable starter definitions and expand caller input into the generic
+command shape expected by the execution engines. The definition classes orchestrate ordered domain
+steps; the step-specific transformation logic lives in separate step classes.
 
 ## State variables passed to nFlow
 
@@ -114,17 +115,28 @@ The three starter definitions are code, not nFlow state graphs:
 The rtl433 starter's domain mapping belongs here. nFlow and the inbound execution engine still only see a
 generic named command with parameters, output, and routing metadata.
 
-Each starter definition and its step classes live in a workflow-specific child package:
+Each starter definition and its step classes live in a workflow-specific feature package:
 
-- `definition.simple`
-- `definition.complex`
-- `definition.rtl433`
+- `features.simpleworkflow`
+- `features.complexworkflow`
+- `features.rtl433workflow`
 
-Each package has its own Spring configuration class for that workflow definition and its step beans:
-`SimpleWorkflowConfiguration`, `ComplexWorkflowConfiguration`, and
-`Rtl433DataPipelineWorkflowConfiguration`. Concrete workflow definitions are plain Kotlin classes and
-are not registered through stereotype annotations. These domain-level steps are distinct from the
-generic nFlow shell states.
+Each package follows the same feature pattern:
+
+- a `*WorkflowConfiguration` class registers the workflow definition, step beans, and info contributor
+- a `*WorkflowDatafill` class binds the feature's `workflow.definition.*` settings
+- a `*WorkflowInfoContributor` class exposes the feature status through management info
+- concrete workflow definitions are plain Kotlin classes and are not registered through stereotype annotations
+
+The current feature configuration classes are `SimpleWorkflowConfiguration`, `ComplexWorkflowConfiguration`,
+and `Rtl433DataPipelineWorkflowConfiguration`. These domain-level steps are distinct from the generic
+nFlow shell states.
+
+Feature toggles:
+
+- `workflow.definition.simple.enabled`
+- `workflow.definition.complex.enabled`
+- `workflow.definition.rtl433.enabled`
 
 Every starter step implements `WorkflowDefinitionStep.execute(input): Map<String, Any?>`. The step's
 declared `inputKeys` document the context keys it reads, and `outputKeys` document the keys it writes.
@@ -134,6 +146,14 @@ command payload.
 `simple`:
 
 - `EchoInputStep`: `echo-input`
+
+Simple workflow feature files:
+
+- `SimpleWorkflowConfiguration`
+- `SimpleWorkflowDatafill`
+- `SimpleWorkflowInfoContributor`
+- `SimpleWorkflowDefinition`
+- `EchoInputStep`
 
 `complex`:
 
