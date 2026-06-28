@@ -56,6 +56,7 @@ class InboundMessageWorkflow(
         permit(COMPLETE_PIPELINE, DONE, ERROR)
     }
 
+    @Suppress("unused")
     fun ingest(execution: StateExecution): NextAction {
         markRunning(execution)
         return executeStep(
@@ -67,6 +68,7 @@ class InboundMessageWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun inspect(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,
@@ -77,6 +79,7 @@ class InboundMessageWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun transform(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,
@@ -87,6 +90,7 @@ class InboundMessageWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun route(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,
@@ -97,6 +101,7 @@ class InboundMessageWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun completePipeline(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,

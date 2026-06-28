@@ -57,6 +57,7 @@ class BlockingRestWorkflow(
         permit(COMPLETE_EXECUTION, DONE, ERROR)
     }
 
+    @Suppress("unused")
     fun begin(execution: StateExecution): NextAction {
         markRunning(execution)
         return executeStep(
@@ -69,6 +70,7 @@ class BlockingRestWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun validate(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,
@@ -80,6 +82,7 @@ class BlockingRestWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun prepare(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,
@@ -91,6 +94,7 @@ class BlockingRestWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun execute(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,
@@ -102,6 +106,7 @@ class BlockingRestWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun collectOutput(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,
@@ -113,6 +118,7 @@ class BlockingRestWorkflow(
         )
     }
 
+    @Suppress("unused")
     fun completeExecution(execution: StateExecution): NextAction {
         return executeStep(
             execution = execution,

@@ -52,6 +52,7 @@ class AsyncRestWorkflow(
         permit(BEGIN, DONE, ERROR)
     }
 
+    @Suppress("unused")
     fun begin(execution: StateExecution): NextAction {
         markRunning(execution)
         return executeStep(
