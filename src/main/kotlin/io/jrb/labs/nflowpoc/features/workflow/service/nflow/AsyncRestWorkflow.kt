@@ -25,6 +25,7 @@
 package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 import io.jrb.labs.nflowpoc.features.workflow.service.execution.AsyncRestExecutionEngine
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
@@ -41,8 +42,9 @@ import org.springframework.stereotype.Component
 class AsyncRestWorkflow(
     objectMapper: ObjectMapper,
     resultStore: WorkflowResultStore,
+    metrics: WorkflowMetrics,
     private val executionEngine: AsyncRestExecutionEngine
-) : NflowWorkflowSupport(WorkflowTypes.ASYNC_REST, BEGIN, ERROR, objectMapper, resultStore) {
+) : NflowWorkflowSupport(WorkflowTypes.ASYNC_REST, BEGIN, ERROR, objectMapper, resultStore, metrics) {
 
     init {
         name = "Generic async execution engine"
@@ -52,12 +54,14 @@ class AsyncRestWorkflow(
 
     fun begin(execution: StateExecution): NextAction {
         markRunning(execution)
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.execute(command(execution, WorkflowTypes.ASYNC_REST)),
+            state = BEGIN,
             nextState = DONE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.execute(command(execution, WorkflowTypes.ASYNC_REST))
+        }
     }
 
     companion object {

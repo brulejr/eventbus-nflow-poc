@@ -37,14 +37,95 @@ class WorkflowMetrics(
 
     fun workflowCompleted(workflowType: String, source: WorkflowSource, duration: Duration) {
         meterRegistry.counter("workflow.completed", "workflowType", workflowType, "source", source.name).increment()
-        meterRegistry.timer("workflow.duration", "workflowType", workflowType, "source", source.name).record(duration)
+        recordWorkflowDuration(workflowType, source, "success", duration)
     }
 
     fun workflowFailed(workflowType: String, source: WorkflowSource) {
         meterRegistry.counter("workflow.failed", "workflowType", workflowType, "source", source.name).increment()
     }
 
+    fun workflowFailed(workflowType: String, source: WorkflowSource, duration: Duration) {
+        workflowFailed(workflowType, source)
+        recordWorkflowDuration(workflowType, source, "failure", duration)
+    }
+
     fun ingressReceived(source: WorkflowSource, workflowType: String) {
         meterRegistry.counter("workflow.ingress.received", "workflowType", workflowType, "source", source.name).increment()
+    }
+
+    fun workflowStepStarted(workflowType: String, source: WorkflowSource, step: String) {
+        meterRegistry.counter(
+            "workflow.step.started",
+            "workflowType", workflowType,
+            "source", source.name,
+            "step", step
+        ).increment()
+    }
+
+    fun workflowStepSucceeded(workflowType: String, source: WorkflowSource, step: String, retryNo: Int, duration: Duration) {
+        meterRegistry.counter(
+            "workflow.step.succeeded",
+            "workflowType", workflowType,
+            "source", source.name,
+            "step", step
+        ).increment()
+        recordStepDuration(workflowType, source, step, "success", retryNo, duration)
+    }
+
+    fun workflowStepFailed(workflowType: String, source: WorkflowSource, step: String, retryNo: Int, duration: Duration) {
+        meterRegistry.counter(
+            "workflow.step.failed",
+            "workflowType", workflowType,
+            "source", source.name,
+            "step", step
+        ).increment()
+        recordStepDuration(workflowType, source, step, "failure", retryNo, duration)
+    }
+
+    fun workflowStepRetried(workflowType: String, source: WorkflowSource, step: String, retryNo: Int) {
+        meterRegistry.counter(
+            "workflow.step.retry",
+            "workflowType", workflowType,
+            "source", source.name,
+            "step", step
+        ).increment()
+        meterRegistry.summary(
+            "workflow.step.retry.count",
+            "workflowType", workflowType,
+            "source", source.name,
+            "step", step
+        ).record(retryNo.toDouble())
+    }
+
+    private fun recordWorkflowDuration(
+        workflowType: String,
+        source: WorkflowSource,
+        outcome: String,
+        duration: Duration
+    ) {
+        meterRegistry.timer(
+            "workflow.duration",
+            "workflowType", workflowType,
+            "source", source.name,
+            "outcome", outcome
+        ).record(duration)
+    }
+
+    private fun recordStepDuration(
+        workflowType: String,
+        source: WorkflowSource,
+        step: String,
+        outcome: String,
+        retryNo: Int,
+        duration: Duration
+    ) {
+        meterRegistry.timer(
+            "workflow.step.duration",
+            "workflowType", workflowType,
+            "source", source.name,
+            "step", step,
+            "outcome", outcome,
+            "retried", (retryNo > 0).toString()
+        ).record(duration)
     }
 }

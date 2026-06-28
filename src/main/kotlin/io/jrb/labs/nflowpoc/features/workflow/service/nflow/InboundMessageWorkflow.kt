@@ -25,6 +25,7 @@
 package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 import io.jrb.labs.nflowpoc.features.workflow.service.execution.InboundMessageExecutionEngine
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
@@ -41,8 +42,9 @@ import org.springframework.stereotype.Component
 class InboundMessageWorkflow(
     objectMapper: ObjectMapper,
     resultStore: WorkflowResultStore,
+    metrics: WorkflowMetrics,
     private val executionEngine: InboundMessageExecutionEngine
-) : NflowWorkflowSupport(WorkflowTypes.INBOUND_MESSAGE, INGEST, ERROR, objectMapper, resultStore) {
+) : NflowWorkflowSupport(WorkflowTypes.INBOUND_MESSAGE, INGEST, ERROR, objectMapper, resultStore, metrics) {
 
     init {
         name = "Generic inbound pipeline execution engine"
@@ -56,48 +58,58 @@ class InboundMessageWorkflow(
 
     fun ingest(execution: StateExecution): NextAction {
         markRunning(execution)
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.ingest(command(execution, WorkflowTypes.INBOUND_MESSAGE)),
+            state = INGEST,
             nextState = INSPECT,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.ingest(command(execution, WorkflowTypes.INBOUND_MESSAGE))
+        }
     }
 
     fun inspect(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.inspect(command(execution, WorkflowTypes.INBOUND_MESSAGE)),
+            state = INSPECT,
             nextState = TRANSFORM,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.inspect(command(execution, WorkflowTypes.INBOUND_MESSAGE))
+        }
     }
 
     fun transform(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.transform(command(execution, WorkflowTypes.INBOUND_MESSAGE)),
+            state = TRANSFORM,
             nextState = ROUTE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.transform(command(execution, WorkflowTypes.INBOUND_MESSAGE))
+        }
     }
 
     fun route(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.route(command(execution, WorkflowTypes.INBOUND_MESSAGE)),
+            state = ROUTE,
             nextState = COMPLETE_PIPELINE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.route(command(execution, WorkflowTypes.INBOUND_MESSAGE))
+        }
     }
 
     fun completePipeline(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.completePipeline(command(execution, WorkflowTypes.INBOUND_MESSAGE)),
+            state = COMPLETE_PIPELINE,
             nextState = DONE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.completePipeline(command(execution, WorkflowTypes.INBOUND_MESSAGE))
+        }
     }
 
     companion object {

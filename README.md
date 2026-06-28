@@ -193,6 +193,12 @@ Custom metric names include:
 - `workflow.failed`
 - `workflow.duration`
 - `workflow.ingress.received`
+- `workflow.step.started`
+- `workflow.step.succeeded`
+- `workflow.step.failed`
+- `workflow.step.duration`
+- `workflow.step.retry`
+- `workflow.step.retry.count`
 
 ## Configuration keys
 

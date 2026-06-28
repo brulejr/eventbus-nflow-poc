@@ -26,6 +26,7 @@ package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowSource
 import io.jrb.labs.nflowpoc.features.workflow.service.execution.WorkflowExecutionCommand
 import io.jrb.labs.nflowpoc.features.workflow.service.execution.WorkflowExecutionStep
@@ -35,13 +36,16 @@ import io.nflow.engine.workflow.definition.StateExecution
 import io.nflow.engine.workflow.definition.WorkflowDefinition
 import io.nflow.engine.workflow.definition.WorkflowState
 import org.slf4j.LoggerFactory
+import java.time.Duration
+import java.time.Instant
 
 abstract class NflowWorkflowSupport(
     workflowType: String,
     initialState: WorkflowState,
     errorState: WorkflowState,
     protected val objectMapper: ObjectMapper,
-    private val resultStore: WorkflowResultStore
+    private val resultStore: WorkflowResultStore,
+    private val metrics: WorkflowMetrics
 ) : WorkflowDefinition(workflowType, initialState, errorState) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -71,7 +75,87 @@ abstract class NflowWorkflowSupport(
             defaultSteps = defaultSteps
         )
 
-    protected fun applyStep(
+    protected fun executeStep(
+        execution: StateExecution,
+        state: WorkflowState,
+        nextState: WorkflowState,
+        errorState: WorkflowState,
+        block: () -> WorkflowExecutionStep
+    ): NextAction {
+        val startedAt = Instant.now()
+        val stepName = state.name()
+        val source = source(execution)
+        val retryNo = execution.retries
+        metrics.workflowStepStarted(type, source, stepName)
+        if (retryNo > 0) {
+            metrics.workflowStepRetried(type, source, stepName, retryNo)
+        }
+        log.info(
+            "Workflow step started workflowType={} step={} ticketId={} correlationId={} source={} nflowInstanceId={} retryNo={}",
+            type,
+            stepName,
+            ticketId(execution),
+            correlationId(execution),
+            source,
+            execution.workflowInstanceId,
+            retryNo
+        )
+
+        val step = try {
+            block()
+        } catch (ex: Exception) {
+            val duration = Duration.between(startedAt, Instant.now())
+            metrics.workflowStepFailed(type, source, stepName, retryNo, duration)
+            log.error(
+                "Workflow step failed workflowType={} step={} ticketId={} correlationId={} source={} nflowInstanceId={} retryNo={} durationMs={} failureType={}",
+                type,
+                stepName,
+                ticketId(execution),
+                correlationId(execution),
+                source,
+                execution.workflowInstanceId,
+                retryNo,
+                duration.toMillis(),
+                ex.javaClass.simpleName,
+                ex
+            )
+            throw ex
+        }
+
+        val duration = Duration.between(startedAt, Instant.now())
+        if (step.failed) {
+            metrics.workflowStepFailed(type, source, stepName, retryNo, duration)
+            log.warn(
+                "Workflow step failed workflowType={} step={} ticketId={} correlationId={} source={} nflowInstanceId={} retryNo={} durationMs={} message={}",
+                type,
+                stepName,
+                ticketId(execution),
+                correlationId(execution),
+                source,
+                execution.workflowInstanceId,
+                retryNo,
+                duration.toMillis(),
+                step.failure ?: step.message
+            )
+        } else {
+            metrics.workflowStepSucceeded(type, source, stepName, retryNo, duration)
+            log.info(
+                "Workflow step succeeded workflowType={} step={} ticketId={} correlationId={} source={} nflowInstanceId={} retryNo={} durationMs={} message={}",
+                type,
+                stepName,
+                ticketId(execution),
+                correlationId(execution),
+                source,
+                execution.workflowInstanceId,
+                retryNo,
+                duration.toMillis(),
+                step.message
+            )
+        }
+        return applyStep(execution, step, nextState, errorState)
+    }
+
+    private fun applyStep(
         execution: StateExecution,
         step: WorkflowExecutionStep,
         nextState: WorkflowState,
@@ -81,10 +165,33 @@ abstract class NflowWorkflowSupport(
             value?.let { execution.setVariable(key, stateVariableValue(it)) }
         }
         if (step.failed) {
-            resultStore.markFailed(ticketId(execution), step.failure ?: step.message)
+            val result = resultStore.markFailed(ticketId(execution), step.failure ?: step.message)
+            metrics.workflowFailed(type, result.source, Duration.between(result.createdAt, result.updatedAt))
+            log.warn(
+                "Workflow failed workflowType={} ticketId={} correlationId={} source={} nflowInstanceId={} durationMs={} message={}",
+                type,
+                result.ticketId,
+                result.correlationId,
+                result.source,
+                execution.workflowInstanceId,
+                Duration.between(result.createdAt, result.updatedAt).toMillis(),
+                step.failure ?: step.message
+            )
             return NextAction.stopInState(errorState, step.message)
         }
-        step.result?.let { resultStore.markCompleted(ticketId(execution), it) }
+        step.result?.let {
+            val result = resultStore.markCompleted(ticketId(execution), it)
+            metrics.workflowCompleted(type, result.source, Duration.between(result.createdAt, result.updatedAt))
+            log.info(
+                "Workflow completed workflowType={} ticketId={} correlationId={} source={} nflowInstanceId={} durationMs={}",
+                type,
+                result.ticketId,
+                result.correlationId,
+                result.source,
+                execution.workflowInstanceId,
+                Duration.between(result.createdAt, result.updatedAt).toMillis()
+            )
+        }
         return NextAction.moveToState(nextState, step.message)
     }
 
@@ -100,14 +207,43 @@ abstract class NflowWorkflowSupport(
 
     protected fun markRunning(execution: StateExecution) {
         resultStore.markRunning(ticketId(execution))
+        log.info(
+            "Workflow running workflowType={} ticketId={} correlationId={} source={} nflowInstanceId={}",
+            type,
+            ticketId(execution),
+            correlationId(execution),
+            source(execution),
+            execution.workflowInstanceId
+        )
     }
 
     protected fun complete(execution: StateExecution, result: Map<String, Any?>) {
-        resultStore.markCompleted(ticketId(execution), result)
+        val workflow = resultStore.markCompleted(ticketId(execution), result)
+        metrics.workflowCompleted(type, workflow.source, Duration.between(workflow.createdAt, workflow.updatedAt))
+        log.info(
+            "Workflow completed workflowType={} ticketId={} correlationId={} source={} nflowInstanceId={} durationMs={}",
+            type,
+            workflow.ticketId,
+            workflow.correlationId,
+            workflow.source,
+            execution.workflowInstanceId,
+            Duration.between(workflow.createdAt, workflow.updatedAt).toMillis()
+        )
     }
 
     protected fun failAndStop(execution: StateExecution, errorState: WorkflowState, message: String): NextAction {
-        resultStore.markFailed(ticketId(execution), message)
+        val workflow = resultStore.markFailed(ticketId(execution), message)
+        metrics.workflowFailed(type, workflow.source, Duration.between(workflow.createdAt, workflow.updatedAt))
+        log.warn(
+            "Workflow failed workflowType={} ticketId={} correlationId={} source={} nflowInstanceId={} durationMs={} message={}",
+            type,
+            workflow.ticketId,
+            workflow.correlationId,
+            workflow.source,
+            execution.workflowInstanceId,
+            Duration.between(workflow.createdAt, workflow.updatedAt).toMillis(),
+            message
+        )
         return NextAction.stopInState(errorState, message)
     }
 

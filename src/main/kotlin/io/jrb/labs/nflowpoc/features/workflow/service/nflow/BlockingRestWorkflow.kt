@@ -25,6 +25,7 @@
 package io.jrb.labs.nflowpoc.features.workflow.service.nflow
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
 import io.jrb.labs.nflowpoc.features.workflow.service.execution.BlockingRestExecutionEngine
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
@@ -41,8 +42,9 @@ import org.springframework.stereotype.Component
 class BlockingRestWorkflow(
     objectMapper: ObjectMapper,
     resultStore: WorkflowResultStore,
+    metrics: WorkflowMetrics,
     private val executionEngine: BlockingRestExecutionEngine
-) : NflowWorkflowSupport(WorkflowTypes.BLOCKING_REST, BEGIN, ERROR, objectMapper, resultStore) {
+) : NflowWorkflowSupport(WorkflowTypes.BLOCKING_REST, BEGIN, ERROR, objectMapper, resultStore, metrics) {
 
     init {
         name = "Generic blocking multi-step execution engine"
@@ -57,57 +59,69 @@ class BlockingRestWorkflow(
 
     fun begin(execution: StateExecution): NextAction {
         markRunning(execution)
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.begin(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            state = BEGIN,
             nextState = VALIDATE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.begin(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
+        }
     }
 
     fun validate(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.validate(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            state = VALIDATE,
             nextState = PREPARE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.validate(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
+        }
     }
 
     fun prepare(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.prepare(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            state = PREPARE,
             nextState = EXECUTE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.prepare(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
+        }
     }
 
     fun execute(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.execute(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            state = EXECUTE,
             nextState = COLLECT_OUTPUT,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.execute(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
+        }
     }
 
     fun collectOutput(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.collectOutput(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            state = COLLECT_OUTPUT,
             nextState = COMPLETE_EXECUTION,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.collectOutput(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
+        }
     }
 
     fun completeExecution(execution: StateExecution): NextAction {
-        return applyStep(
+        return executeStep(
             execution = execution,
-            step = executionEngine.completeExecution(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS)),
+            state = COMPLETE_EXECUTION,
             nextState = DONE,
             errorState = ERROR
-        )
+        ) {
+            executionEngine.completeExecution(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
+        }
     }
 
     companion object {
