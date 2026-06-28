@@ -63,10 +63,10 @@ class BlockingRestWorkflow(
             execution = execution,
             state = BEGIN,
             nextState = VALIDATE,
-            errorState = ERROR
-        ) {
-            executionEngine.begin(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
-        }
+            errorState = ERROR,
+            defaultSteps = BlockingRestExecutionEngine.DEFAULT_STEPS,
+            block = executionEngine::begin
+        )
     }
 
     fun validate(execution: StateExecution): NextAction {
@@ -74,10 +74,10 @@ class BlockingRestWorkflow(
             execution = execution,
             state = VALIDATE,
             nextState = PREPARE,
-            errorState = ERROR
-        ) {
-            executionEngine.validate(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
-        }
+            errorState = ERROR,
+            defaultSteps = BlockingRestExecutionEngine.DEFAULT_STEPS,
+            block = executionEngine::validate
+        )
     }
 
     fun prepare(execution: StateExecution): NextAction {
@@ -85,10 +85,10 @@ class BlockingRestWorkflow(
             execution = execution,
             state = PREPARE,
             nextState = EXECUTE,
-            errorState = ERROR
-        ) {
-            executionEngine.prepare(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
-        }
+            errorState = ERROR,
+            defaultSteps = BlockingRestExecutionEngine.DEFAULT_STEPS,
+            block = executionEngine::prepare
+        )
     }
 
     fun execute(execution: StateExecution): NextAction {
@@ -96,10 +96,10 @@ class BlockingRestWorkflow(
             execution = execution,
             state = EXECUTE,
             nextState = COLLECT_OUTPUT,
-            errorState = ERROR
-        ) {
-            executionEngine.execute(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
-        }
+            errorState = ERROR,
+            defaultSteps = BlockingRestExecutionEngine.DEFAULT_STEPS,
+            block = executionEngine::execute
+        )
     }
 
     fun collectOutput(execution: StateExecution): NextAction {
@@ -107,10 +107,10 @@ class BlockingRestWorkflow(
             execution = execution,
             state = COLLECT_OUTPUT,
             nextState = COMPLETE_EXECUTION,
-            errorState = ERROR
-        ) {
-            executionEngine.collectOutput(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
-        }
+            errorState = ERROR,
+            defaultSteps = BlockingRestExecutionEngine.DEFAULT_STEPS,
+            block = executionEngine::collectOutput
+        )
     }
 
     fun completeExecution(execution: StateExecution): NextAction {
@@ -118,15 +118,13 @@ class BlockingRestWorkflow(
             execution = execution,
             state = COMPLETE_EXECUTION,
             nextState = DONE,
-            errorState = ERROR
-        ) {
-            executionEngine.completeExecution(command(execution, WorkflowTypes.BLOCKING_REST, BlockingRestExecutionEngine.DEFAULT_STEPS))
-        }
+            errorState = ERROR,
+            defaultSteps = BlockingRestExecutionEngine.DEFAULT_STEPS,
+            block = executionEngine::completeExecution
+        )
     }
 
     companion object {
-        const val TYPE: String = WorkflowTypes.BLOCKING_REST
-
         @JvmField
         val BEGIN: WorkflowState = State("begin", WorkflowStateType.start, "Accept the request")
 

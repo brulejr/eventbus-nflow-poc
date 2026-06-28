@@ -75,7 +75,7 @@ abstract class NflowWorkflowSupport(
             defaultSteps = defaultSteps
         )
 
-    protected fun executeStep(
+    private fun executeRawStep(
         execution: StateExecution,
         state: WorkflowState,
         nextState: WorkflowState,
@@ -154,6 +154,23 @@ abstract class NflowWorkflowSupport(
         }
         return applyStep(execution, step, nextState, errorState)
     }
+
+    protected fun executeStep(
+        execution: StateExecution,
+        state: WorkflowState,
+        nextState: WorkflowState,
+        errorState: WorkflowState,
+        defaultSteps: List<String> = emptyList(),
+        block: (WorkflowExecutionCommand) -> WorkflowExecutionStep
+    ): NextAction =
+        executeRawStep(
+            execution = execution,
+            state = state,
+            nextState = nextState,
+            errorState = errorState
+        ) {
+            block(command(execution, type, defaultSteps))
+        }
 
     private fun applyStep(
         execution: StateExecution,

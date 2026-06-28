@@ -58,15 +58,12 @@ class AsyncRestWorkflow(
             execution = execution,
             state = BEGIN,
             nextState = DONE,
-            errorState = ERROR
-        ) {
-            executionEngine.execute(command(execution, WorkflowTypes.ASYNC_REST))
-        }
+            errorState = ERROR,
+            block = executionEngine::execute
+        )
     }
 
     companion object {
-        const val TYPE: String = WorkflowTypes.ASYNC_REST
-
         @JvmField
         val BEGIN: WorkflowState = State("begin", WorkflowStateType.start, "Accept the request")
 
