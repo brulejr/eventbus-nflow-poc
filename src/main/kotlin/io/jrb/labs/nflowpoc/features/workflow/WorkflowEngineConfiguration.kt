@@ -27,16 +27,27 @@ package io.jrb.labs.nflowpoc.features.workflow
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.FeatureDescriptors.CONFIG_PREFIX_WORKFLOW_ENGINE
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionResolver
+import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionSpec
 import io.jrb.labs.nflowpoc.features.workflow.messaging.InboundMessageParser
 import io.jrb.labs.nflowpoc.features.workflow.messaging.InboundWorkflowDispatcher
 import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
 import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowEngineAdapter
 import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowLaunchService
+import io.jrb.labs.nflowpoc.features.workflow.service.execution.AsyncRestExecutionEngine
+import io.jrb.labs.nflowpoc.features.workflow.service.execution.BlockingRestExecutionEngine
+import io.jrb.labs.nflowpoc.features.workflow.service.execution.InboundMessageExecutionEngine
+import io.jrb.labs.nflowpoc.features.workflow.service.nflow.AsyncRestWorkflow
+import io.jrb.labs.nflowpoc.features.workflow.service.nflow.BlockingRestWorkflow
+import io.jrb.labs.nflowpoc.features.workflow.service.nflow.InboundMessageWorkflow
+import io.jrb.labs.nflowpoc.features.workflow.service.nflow.NflowWorkflowEngineAdapter
 import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
 import io.micrometer.core.instrument.MeterRegistry
+import io.nflow.engine.service.WorkflowInstanceService
+import io.nflow.engine.workflow.instance.WorkflowInstanceFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 
 @Configuration
 @ConditionalOnProperty(prefix = CONFIG_PREFIX_WORKFLOW_ENGINE, name = ["enabled"], havingValue = "true", matchIfMissing = true)
@@ -68,6 +79,11 @@ class WorkflowEngineConfiguration {
     }
 
     @Bean
+    fun workflowDefinitionResolver(definitions: List<WorkflowDefinitionSpec>): WorkflowDefinitionResolver {
+        return WorkflowDefinitionResolver(definitions)
+    }
+
+    @Bean
     fun inboundMessageParser(objectMapper: ObjectMapper): InboundMessageParser {
         return InboundMessageParser(objectMapper)
     }
@@ -78,6 +94,67 @@ class WorkflowEngineConfiguration {
         metrics: WorkflowMetrics
     ): InboundWorkflowDispatcher {
         return InboundWorkflowDispatcher(workflowLaunchService, metrics)
+    }
+
+    @Bean
+    @Profile("nflow")
+    fun nflowWorkflowEngineAdapter(
+        workflowInstanceService: WorkflowInstanceService,
+        workflowInstanceFactory: WorkflowInstanceFactory,
+        objectMapper: ObjectMapper
+    ): NflowWorkflowEngineAdapter {
+        return NflowWorkflowEngineAdapter(workflowInstanceService, workflowInstanceFactory, objectMapper)
+    }
+
+    @Bean
+    @Profile("nflow")
+    fun asyncRestExecutionEngine(): AsyncRestExecutionEngine {
+        return AsyncRestExecutionEngine()
+    }
+
+    @Bean
+    @Profile("nflow")
+    fun blockingRestExecutionEngine(): BlockingRestExecutionEngine {
+        return BlockingRestExecutionEngine()
+    }
+
+    @Bean
+    @Profile("nflow")
+    fun inboundMessageExecutionEngine(): InboundMessageExecutionEngine {
+        return InboundMessageExecutionEngine()
+    }
+
+    @Bean
+    @Profile("nflow")
+    fun asyncRestWorkflow(
+        objectMapper: ObjectMapper,
+        resultStore: WorkflowResultStore,
+        metrics: WorkflowMetrics,
+        executionEngine: AsyncRestExecutionEngine
+    ): AsyncRestWorkflow {
+        return AsyncRestWorkflow(objectMapper, resultStore, metrics, executionEngine)
+    }
+
+    @Bean
+    @Profile("nflow")
+    fun blockingRestWorkflow(
+        objectMapper: ObjectMapper,
+        resultStore: WorkflowResultStore,
+        metrics: WorkflowMetrics,
+        executionEngine: BlockingRestExecutionEngine
+    ): BlockingRestWorkflow {
+        return BlockingRestWorkflow(objectMapper, resultStore, metrics, executionEngine)
+    }
+
+    @Bean
+    @Profile("nflow")
+    fun inboundMessageWorkflow(
+        objectMapper: ObjectMapper,
+        resultStore: WorkflowResultStore,
+        metrics: WorkflowMetrics,
+        executionEngine: InboundMessageExecutionEngine
+    ): InboundMessageWorkflow {
+        return InboundMessageWorkflow(objectMapper, resultStore, metrics, executionEngine)
     }
 
 }

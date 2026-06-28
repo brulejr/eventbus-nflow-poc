@@ -23,9 +23,7 @@ package io.jrb.labs.nflowpoc.features.workflow.definition
 
 import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowStartCommand
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 
-@Component
 class WorkflowDefinitionResolver(
     definitions: List<WorkflowDefinitionSpec>
 ) {
@@ -59,4 +57,3 @@ class WorkflowDefinitionResolver(
             .firstOrNull()
     }
 }
-

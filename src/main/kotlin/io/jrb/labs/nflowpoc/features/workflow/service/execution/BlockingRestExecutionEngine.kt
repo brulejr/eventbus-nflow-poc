@@ -21,11 +21,6 @@
 
 package io.jrb.labs.nflowpoc.features.workflow.service.execution
 
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Component
-
-@Component
-@Profile("nflow")
 class BlockingRestExecutionEngine {
 
     fun begin(command: WorkflowExecutionCommand): WorkflowExecutionStep =
@@ -140,4 +135,3 @@ class BlockingRestExecutionEngine {
         )
     }
 }
-

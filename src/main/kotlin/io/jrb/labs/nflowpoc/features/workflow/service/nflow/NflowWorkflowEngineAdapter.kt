@@ -31,14 +31,10 @@ import io.jrb.labs.nflowpoc.features.workflow.service.WorkflowEngineAdapter
 import io.nflow.engine.service.WorkflowInstanceService
 import io.nflow.engine.workflow.instance.WorkflowInstanceFactory
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Component
 
 /**
  * nFlow-backed WorkflowEngineAdapter.
  */
-@Component
-@Profile("nflow")
 class NflowWorkflowEngineAdapter(
     private val workflowInstanceService: WorkflowInstanceService,
     private val workflowInstanceFactory: WorkflowInstanceFactory,

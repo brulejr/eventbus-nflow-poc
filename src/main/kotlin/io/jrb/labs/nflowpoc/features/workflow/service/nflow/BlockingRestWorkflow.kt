@@ -34,11 +34,7 @@ import io.nflow.engine.workflow.definition.NextAction
 import io.nflow.engine.workflow.definition.StateExecution
 import io.nflow.engine.workflow.definition.WorkflowState
 import io.nflow.engine.workflow.definition.WorkflowStateType
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Component
 
-@Component
-@Profile("nflow")
 class BlockingRestWorkflow(
     objectMapper: ObjectMapper,
     resultStore: WorkflowResultStore,
