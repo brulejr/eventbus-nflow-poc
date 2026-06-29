@@ -21,11 +21,15 @@
 
 package io.jrb.labs.nflowpoc.features.rtl433workflow
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.jrb.labs.nflowpoc.features.FeatureDescriptors.CONFIG_PREFIX_WORKFLOW_DEFINITION_RTL433
+import io.jrb.labs.nflowpoc.features.workflow.metrics.WorkflowMetrics
+import io.jrb.labs.nflowpoc.features.workflow.store.WorkflowResultStore
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 
 @Configuration
 @EnableConfigurationProperties(Rtl433WorkflowDatafill::class)
@@ -79,4 +83,29 @@ class Rtl433DataPipelineWorkflowConfiguration {
     @Bean
     fun routeTelemetryStep(datafill: Rtl433WorkflowDatafill): RouteTelemetryStep =
         RouteTelemetryStep(datafill)
+
+    @Bean
+    @Profile("nflow")
+    fun rtl433DataPipelineWorkflow(
+        objectMapper: ObjectMapper,
+        resultStore: WorkflowResultStore,
+        metrics: WorkflowMetrics,
+        ingestRawMessageStep: IngestRawMessageStep,
+        decodeDevicePayloadStep: DecodeDevicePayloadStep,
+        normalizeMeasurementsStep: NormalizeMeasurementsStep,
+        classifySensorStep: ClassifySensorStep,
+        enrichAssetMetadataStep: EnrichAssetMetadataStep,
+        routeTelemetryStep: RouteTelemetryStep
+    ): Rtl433DataPipelineWorkflow =
+        Rtl433DataPipelineWorkflow(
+            objectMapper = objectMapper,
+            resultStore = resultStore,
+            metrics = metrics,
+            ingestRawMessageStep = ingestRawMessageStep,
+            decodeDevicePayloadStep = decodeDevicePayloadStep,
+            normalizeMeasurementsStep = normalizeMeasurementsStep,
+            classifySensorStep = classifySensorStep,
+            enrichAssetMetadataStep = enrichAssetMetadataStep,
+            routeTelemetryStep = routeTelemetryStep
+        )
 }

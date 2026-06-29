@@ -31,6 +31,7 @@ Content-Type: application/json
 {
   "correlationId": "inbound-test-001",
   "payload": {
+    "definition": "rtl433-data-pipeline",
     "model": "Acurite-Tower",
     "id": 12345,
     "channel": "A",

@@ -160,17 +160,17 @@ inbound_response="$(post_json "/api/workflows/inbound-test" '{
   }
 }')"
 inbound_ticket_id="$(jq -r '.ticketId' <<<"${inbound_response}")"
-poll_ticket_completed "inbound-message-workflow" "${inbound_ticket_id}"
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.engine == "inbound-message-workflow"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.name == "rtl433-data-pipeline"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.sensorType == "weather-sensor"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.assetKey == "weather-sensor:12345"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.routeDestination == "telemetry.normalized"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.normalizedMeasurements.temperature.unit == "C"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.output.normalizedMeasurements.humidity.unit == "%"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.steps == ["ingest-raw-message", "decode-device-payload", "normalize-measurements", "classify-sensor", "enrich-asset-metadata", "route-telemetry"]'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.definitionSteps | length == 6'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.definitionSteps[2].id == "normalize-measurements"'
-assert_jq "inbound-message-workflow" "${POLLED_RESPONSE}" '.result.workflowPath | length == 6'
+poll_ticket_completed "rtl433-data-pipeline" "${inbound_ticket_id}"
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.engine == "rtl433-data-pipeline"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.name == "rtl433-data-pipeline"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.output.sensorType == "weather-sensor"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.output.assetKey == "weather-sensor:12345"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.routeDestination == "telemetry.normalized"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.output.normalizedMeasurements.temperature.unit == "C"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.output.normalizedMeasurements.humidity.unit == "%"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.steps == ["ingest-raw-message", "decode-device-payload", "normalize-measurements", "classify-sensor", "enrich-asset-metadata", "route-telemetry"]'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.definitionSteps | length == 6'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.definitionSteps[2].id == "normalize-measurements"'
+assert_jq "rtl433-data-pipeline" "${POLLED_RESPONSE}" '.result.workflowPath == ["ingestRawMessage", "decodeDevicePayload", "normalizeMeasurements", "classifySensor", "enrichAssetMetadata", "routeTelemetry", "completePipeline", "done"]'
 
 echo "nFlow local smoke test completed successfully"

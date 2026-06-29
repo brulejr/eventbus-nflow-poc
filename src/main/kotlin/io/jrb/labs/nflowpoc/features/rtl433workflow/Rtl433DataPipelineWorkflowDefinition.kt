@@ -23,8 +23,6 @@ package io.jrb.labs.nflowpoc.features.rtl433workflow
 
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionSpec
 import io.jrb.labs.nflowpoc.features.workflow.definition.WorkflowDefinitionStep
-import io.jrb.labs.nflowpoc.features.workflow.model.WorkflowTypes
-
 class Rtl433DataPipelineWorkflowDefinition(
     datafill: Rtl433WorkflowDatafill,
     ingestRawMessageStep: IngestRawMessageStep,
@@ -34,9 +32,9 @@ class Rtl433DataPipelineWorkflowDefinition(
     enrichAssetMetadataStep: EnrichAssetMetadataStep,
     routeTelemetryStep: RouteTelemetryStep
 ) : WorkflowDefinitionSpec {
-    override val id: String = "rtl433-data-pipeline"
-    override val description: String = "Starter definition that maps rtl_433 device telemetry into a generic inbound pipeline command."
-    override val engineWorkflowType: String = WorkflowTypes.INBOUND_MESSAGE
+    override val id: String = Rtl433WorkflowTypes.DATA_PIPELINE
+    override val description: String = "State-machine workflow that maps rtl_433 device telemetry into normalized routed telemetry."
+    override val engineWorkflowType: String = Rtl433WorkflowTypes.DATA_PIPELINE
     override val steps: List<WorkflowDefinitionStep> = listOf(
         ingestRawMessageStep,
         decodeDevicePayloadStep,
@@ -48,15 +46,14 @@ class Rtl433DataPipelineWorkflowDefinition(
 
     override fun expand(payload: Map<String, Any?>): Map<String, Any?> {
         val raw = rawPayload(payload)
-        val context = executeSteps(mapOf("raw" to raw))
         return mapOf(
             "name" to id,
             "parameters" to mapOf("raw" to raw),
+            "raw" to raw,
             "steps" to steps.map { it.id },
             "definitionSteps" to steps.map { it.toPayload() },
-            "output" to (payload["output"] ?: context.filterKeys { it in outputKeys }),
-            "routingKey" to (payload["routingKey"] ?: context["routingKey"]),
-            "routeDestination" to (payload["routeDestination"] ?: context["routeDestination"]),
+            "routingKey" to payload["routingKey"],
+            "routeDestination" to payload["routeDestination"],
             "failInspection" to (payload["failInspection"] == true),
             "failTransform" to (payload["failTransform"] == true),
             "failRoute" to (payload["failRoute"] == true)
@@ -90,6 +87,5 @@ class Rtl433DataPipelineWorkflowDefinition(
             "failTransform",
             "failRoute"
         )
-        private val outputKeys = setOf("deviceId", "sensorType", "assetKey", "normalizedMeasurements")
     }
 }

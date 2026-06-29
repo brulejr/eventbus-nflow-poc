@@ -73,12 +73,13 @@ Canonical workflow type names are defined in `WorkflowTypes`:
 - `async-rest-workflow`: generic one-step async execution engine.
 - `blocking-rest-workflow`: generic blocking multi-step execution engine.
 - `inbound-message-workflow`: generic inbound pipeline execution engine.
+- `rtl433-data-pipeline`: domain state-machine workflow for rtl_433 telemetry.
 
 Named starter workflow definitions are:
 
 - `simple`: one-step starter definition backed by `async-rest-workflow`.
 - `complex`: multi-step starter definition backed by `blocking-rest-workflow`.
-- `rtl433-data-pipeline`: rtl_433 telemetry starter definition backed by `inbound-message-workflow`.
+- `rtl433-data-pipeline`: rtl_433 telemetry definition backed by its own nFlow state machine.
 
 REST defaults:
 
@@ -103,17 +104,17 @@ workflow type and replaces the payload with the expanded generic execution comma
 
 ## Starter Workflow Definitions
 
-The three starter definitions are code, not nFlow state graphs:
+The simple and complex starter definitions are code expanders; rtl433 now resolves to a dedicated nFlow state graph:
 
 - `SimpleWorkflowDefinition`: expands `simple` into `{ name, parameters, output }` for
   `async-rest-workflow`.
 - `ComplexWorkflowDefinition`: expands `complex` into `{ name, parameters, steps, output }` for
   `blocking-rest-workflow`.
-- `Rtl433DataPipelineWorkflowDefinition`: maps rtl_433-style raw telemetry into `{ name, parameters,
-  output, routingKey, routeDestination }` for `inbound-message-workflow`.
+- `Rtl433DataPipelineWorkflowDefinition`: preserves raw rtl_433 telemetry and step metadata for
+  `rtl433-data-pipeline`, where each domain stage executes as a durable nFlow state.
 
-The rtl433 starter's domain mapping belongs here. nFlow and the inbound execution engine still only see a
-generic named command with parameters, output, and routing metadata.
+The rtl433 domain mapping now belongs in `Rtl433DataPipelineWorkflow`; nFlow state variables carry decoded
+identity, normalized measurements, classification, enrichment, and routing metadata between states.
 
 Each starter definition and its step classes live in a workflow-specific feature package:
 
@@ -235,13 +236,12 @@ Failure simulation is generic:
 - `failValidation: true` rejects the blocking engine during validation.
 - `failPreparation: true` rejects the blocking engine during preparation.
 - `failExecution: true` rejects the blocking engine during execution.
-- `failInspection: true` rejects the inbound engine during inspection.
-- `failTransform: true` rejects the inbound engine during transform.
-- `failRoute: true` rejects the inbound engine during route.
+- `failInspection: true` rejects the rtl433 state machine during decode.
+- `failTransform: true` rejects the rtl433 state machine during normalize/classify/enrich.
+- `failRoute: true` rejects the rtl433 state machine during route.
 
-The rtl433-data-pipeline starter example is now a payload submitted to `InboundMessageWorkflow`, not
-logic embedded inside the nFlow definition. Its normalized measurements, device metadata, and routing
-metadata live in `parameters`, `output`, `routingKey`, and `routeDestination`.
+The rtl433-data-pipeline example is now a first-class nFlow state machine. Its normalized measurements,
+device metadata, and routing metadata are produced incrementally by states and returned in the ticket result.
 
 ## Completion contract
 
@@ -269,7 +269,7 @@ Validated with:
 - [x] `NflowConfig` loads and nFlow initializes its H2 schema.
 - [x] `POST /api/workflows/rest-async` starts `async-rest-workflow` and completes successfully.
 - [x] `POST /api/workflows/rest-blocking` starts `blocking-rest-workflow` and completes successfully.
-- [x] `POST /api/workflows/inbound-test`, MQTT, or RabbitMQ starts `inbound-message-workflow` and completes successfully.
+- [x] `POST /api/workflows/inbound-test`, MQTT, or RabbitMQ can start `rtl433-data-pipeline` and complete successfully.
 - [x] Terminal workflow states update `WorkflowResultStore`.
 - [x] The ticket ID is stored as the nFlow workflow `external_id`.
 - [x] nFlow state variables contain `ticketId`, `correlationId`, `source`, and `payloadJson`.

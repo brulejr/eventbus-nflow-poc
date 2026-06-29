@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Jon Brule <brulejr@gmail.com>
+ * Copyright (c) 2026 Jon Brule
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -9,9 +9,6 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -22,14 +19,8 @@
  * SOFTWARE.
  */
 
-package io.jrb.labs.nflowpoc.features.workflow.model
+package io.jrb.labs.nflowpoc.features.rtl433workflow
 
-/**
- * Canonical workflow type names used by the REST controllers, message ingress adapters,
- * and nFlow workflow definitions.
- */
-object WorkflowTypes {
-    const val ASYNC_REST = "async-rest-workflow"
-    const val BLOCKING_REST = "blocking-rest-workflow"
-    const val INBOUND_MESSAGE = "inbound-message-workflow"
+object Rtl433WorkflowTypes {
+    const val DATA_PIPELINE = "rtl433-data-pipeline"
 }

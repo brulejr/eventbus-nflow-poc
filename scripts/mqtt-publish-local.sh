@@ -13,7 +13,7 @@ mosquitto_pub \
   -V mqttv311 \
   -t "${MQTT_TOPIC}" \
   -m '{
-    "workflowType": "inbound-message-workflow",
+    "workflowType": "rtl433-data-pipeline",
     "correlationId": "mqtt-demo-001",
     "payload": {
       "model": "Acurite-Tower",

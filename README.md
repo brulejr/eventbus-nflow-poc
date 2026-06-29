@@ -51,6 +51,7 @@ Canonical workflow types are defined in `WorkflowTypes`:
 - `async-rest-workflow`: generic one-step async execution engine.
 - `blocking-rest-workflow`: generic blocking multi-step execution engine.
 - `inbound-message-workflow`: generic inbound pipeline execution engine.
+- `rtl433-data-pipeline`: domain state-machine workflow for rtl_433 telemetry.
 
 Named starter workflow definitions are `simple`, `complex`, and `rtl433-data-pipeline`.
 
@@ -60,7 +61,7 @@ Inbound broker messages are JSON objects:
 
 ```json
 {
-  "workflowType": "inbound-message-workflow",
+  "workflowType": "rtl433-data-pipeline",
   "correlationId": "message-001",
   "payload": {
     "model": "Acurite-Tower",
@@ -150,7 +151,7 @@ Standalone mode starts embedded Moquette on port `1884`:
 
 ```bash
 mosquitto_pub -h localhost -p 1884 -t poc/workflow/start -m '{
-  "workflowType":"inbound-message-workflow",
+  "workflowType":"rtl433-data-pipeline",
   "correlationId":"mqtt-demo-001",
   "payload":{"model":"Acurite-Tower","id":12345,"channel":"A","temperature_C":21.7,"humidity":44,"battery_ok":1}
 }'
@@ -172,7 +173,7 @@ curl -u guest:guest -H "content-type:application/json" \
   -d '{
     "properties":{},
     "routing_key":"workflow.start",
-    "payload":"{\"workflowType\":\"inbound-message-workflow\",\"correlationId\":\"rabbit-demo-001\",\"payload\":{\"model\":\"Acurite-Tower\",\"id\":12345,\"channel\":\"A\",\"temperature_C\":21.7,\"humidity\":44,\"battery_ok\":1}}",
+    "payload":"{\"workflowType\":\"rtl433-data-pipeline\",\"correlationId\":\"rabbit-demo-001\",\"payload\":{\"model\":\"Acurite-Tower\",\"id\":12345,\"channel\":\"A\",\"temperature_C\":21.7,\"humidity\":44,\"battery_ok\":1}}",
     "payload_encoding":"string"
   }'
 ```

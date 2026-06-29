@@ -75,7 +75,7 @@ abstract class NflowWorkflowSupport(
             defaultSteps = defaultSteps
         )
 
-    private fun executeRawStep(
+    protected fun executeRawStep(
         execution: StateExecution,
         state: WorkflowState,
         nextState: WorkflowState,
